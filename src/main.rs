@@ -17,12 +17,12 @@ use std::{
 
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
-use commands::ping::*;
+use commands::{join::*, leave::*, mute::*, ping::*, play::*, skip::*, stop::*};
 
 use state::*;
 
 #[group]
-#[commands(ping)]
+#[commands(ping, join, leave, mute, play, skip, stop)]
 struct General;
 
 #[tokio::main]
