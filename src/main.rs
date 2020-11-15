@@ -1,38 +1,25 @@
 mod commands;
+mod state;
 
 use serenity::{
-    async_trait,
-    client::bridge::gateway::ShardManager,
     framework::{standard::macros::group, StandardFramework},
     http::Http,
-    model::{event::ResumedEvent, gateway::Ready},
     prelude::*,
 };
-use std::{collections::HashSet, env, sync::Arc};
 
-use tracing::info;
+use songbird::SerenityInit;
+
+use std::{
+    collections::{HashMap, HashSet},
+    env,
+    sync::Arc,
+};
+
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::ping::*;
 
-struct ShardManagerContainer;
-
-impl TypeMapKey for ShardManagerContainer {
-    type Value = Arc<Mutex<ShardManager>>;
-}
-
-struct Handler;
-
-#[async_trait]
-impl EventHandler for Handler {
-    async fn ready(&self, _: Context, ready: Ready) {
-        info!("Connected as {}", ready.user.name);
-    }
-
-    async fn resume(&self, _: Context, _: ResumedEvent) {
-        info!("Resumed");
-    }
-}
+use state::*;
 
 #[group]
 #[commands(ping)]
@@ -69,11 +56,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut client = Client::builder(&token)
         .framework(framework)
         .event_handler(Handler)
+        .register_songbird()
         .await?;
 
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
+        data.insert::<VoiceQueueManager>(Arc::new(Mutex::new(HashMap::new())))
     }
 
     let shard_manager = client.shard_manager.clone();
