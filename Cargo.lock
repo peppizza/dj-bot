@@ -795,7 +795,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "music_bot"
+name = "music-bot"
 version = "0.1.0"
 dependencies = [
  "dotenv",
