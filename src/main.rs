@@ -13,12 +13,15 @@ use std::{collections::HashSet, env};
 
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
-use commands::{join::*, leave::*, mute::*, ping::*, play::*, skip::*, stop::*};
+use commands::{
+    help::*, join::*, leave::*, loop_command::*, mute::*, ping::*, play::*, remove::*, skip::*,
+    stop::*,
+};
 
 use state::*;
 
 #[group]
-#[commands(ping, join, leave, mute, play, skip, stop)]
+#[commands(ping, join, leave, mute, play, skip, stop, loop_command, remove)]
 struct General;
 
 #[tokio::main]
@@ -47,6 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let framework = StandardFramework::new()
         .configure(|c| c.owners(owners).prefix("~"))
+        .help(&MY_HELP)
         .group(&GENERAL_GROUP);
 
     let mut client = Client::builder(&token)

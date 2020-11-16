@@ -7,7 +7,7 @@ use serenity::{
     prelude::*,
 };
 
-use songbird::input;
+use songbird::input::Restartable;
 
 use tracing::error;
 
@@ -32,7 +32,7 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let typing = ctx.http.start_typing(msg.channel_id.0)?;
 
     let source = if url.starts_with("http") {
-        match input::ytdl(&url).await {
+        match Restartable::ytdl(url) {
             Ok(source) => source,
             Err(why) => {
                 error!("Err starting source: {:?}", why);
@@ -43,7 +43,7 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             }
         }
     } else {
-        match input::ytdl_search(&url).await {
+        match Restartable::ytdl_search(&url) {
             Ok(source) => source,
             Err(why) => {
                 error!("Err starting source: {:?}", why);
@@ -57,6 +57,7 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     typing.stop();
 
+    let source = songbird::input::Input::from(source);
     let metadata = source.metadata.clone();
 
     let guild = msg.guild(ctx).await.unwrap();
