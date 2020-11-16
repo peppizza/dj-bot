@@ -4,29 +4,21 @@ use serenity::{
     prelude::*,
 };
 
-use crate::state::VoiceQueueManager;
-
-use super::consts::VOICEQUEUEMANAGER_NOT_FOUND;
+use super::consts::SONGBIRD_EXPECT;
 
 #[command]
 #[only_in(guilds)]
 async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
-    let queues_lock = ctx
-        .data
-        .read()
-        .await
-        .get::<VoiceQueueManager>()
-        .cloned()
-        .expect(VOICEQUEUEMANAGER_NOT_FOUND);
+    let manager = songbird::get(ctx).await.expect(SONGBIRD_EXPECT).clone();
 
-    let mut track_queues = queues_lock.lock().await;
+    if let Some(handler_lock) = manager.get(guild_id) {
+        let handler = handler_lock.lock().await;
+        let queue = handler.queue();
+        queue.stop();
 
-    if let Some(queue) = track_queues.get_mut(&guild_id) {
-        queue.stop()?;
-
-        msg.channel_id.say(ctx, "Queue cleared.").await?;
+        msg.channel_id.say(ctx, "Queue cleared").await?;
     } else {
         msg.channel_id
             .say(ctx, "Not in a voice channel to play in")

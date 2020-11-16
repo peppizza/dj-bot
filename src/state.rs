@@ -10,15 +10,9 @@ use serenity::{
     },
     prelude::*,
 };
-use songbird::{tracks::TrackQueue, Event, EventContext, EventHandler as VoiceEventHandler};
-use std::{collections::HashMap, sync::Arc};
+use songbird::{Event, EventContext, EventHandler as VoiceEventHandler};
+use std::sync::Arc;
 use tracing::{error, info};
-
-pub struct VoiceQueueManager;
-
-impl TypeMapKey for VoiceQueueManager {
-    type Value = Arc<Mutex<HashMap<GuildId, TrackQueue>>>;
-}
 
 pub struct Handler;
 

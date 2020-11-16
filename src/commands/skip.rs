@@ -4,34 +4,26 @@ use serenity::{
     prelude::*,
 };
 
-use crate::state::VoiceQueueManager;
-
-use super::consts::VOICEQUEUEMANAGER_NOT_FOUND;
+use super::consts::SONGBIRD_EXPECT;
 
 #[command]
 #[only_in(guilds)]
 async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
-    let queues_lock = ctx
-        .data
-        .read()
-        .await
-        .get::<VoiceQueueManager>()
-        .cloned()
-        .expect(VOICEQUEUEMANAGER_NOT_FOUND);
+    let manager = songbird::get(ctx).await.expect(SONGBIRD_EXPECT).clone();
 
-    let mut track_queue = queues_lock.lock().await;
-
-    if let Some(queue) = track_queue.get_mut(&guild_id) {
+    if let Some(handler_lock) = manager.get(guild_id) {
+        let handler = handler_lock.lock().await;
+        let queue = handler.queue();
         queue.skip()?;
 
         msg.channel_id
-            .say(ctx, format!("Song skipped: {} in queue", queue.len() - 1))
+            .say(ctx, format!("Song skipped: {} in queue.", queue.len() - 1))
             .await?;
     } else {
         msg.channel_id
-            .say(ctx, "Not in a voice channel to play in")
+            .say(ctx, "Not in a voice channel to skip")
             .await?;
     }
 

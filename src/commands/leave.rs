@@ -1,6 +1,4 @@
-use crate::state::VoiceQueueManager;
-
-use super::consts::{SONGBIRD_EXPECT, VOICEQUEUEMANAGER_NOT_FOUND};
+use super::consts::SONGBIRD_EXPECT;
 
 use serenity::{
     framework::standard::{macros::command, CommandResult},
@@ -18,20 +16,6 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
 
     if has_handler {
         manager.remove(guild_id).await?;
-
-        let queues_lock = ctx
-            .data
-            .read()
-            .await
-            .get::<VoiceQueueManager>()
-            .cloned()
-            .expect(VOICEQUEUEMANAGER_NOT_FOUND);
-
-        let mut track_queues = queues_lock.lock().await;
-
-        if let Some(queue) = track_queues.get_mut(&guild_id) {
-            queue.stop()?;
-        }
 
         msg.channel_id.say(ctx, "Left voice channel").await?;
     } else {

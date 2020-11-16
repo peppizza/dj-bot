@@ -1,6 +1,6 @@
-use crate::state::{TrackEndNotifier, VoiceQueueManager};
+use crate::state::TrackEndNotifier;
 
-use super::consts::{SONGBIRD_EXPECT, VOICEQUEUEMANAGER_NOT_FOUND};
+use super::consts::SONGBIRD_EXPECT;
 use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
     model::prelude::*,
@@ -63,16 +63,6 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild_id = guild.id;
 
     let manager = songbird::get(ctx).await.expect(SONGBIRD_EXPECT).clone();
-    let queues_lock = ctx
-        .data
-        .read()
-        .await
-        .get::<VoiceQueueManager>()
-        .cloned()
-        .expect(VOICEQUEUEMANAGER_NOT_FOUND);
-
-    let mut track_queues = queues_lock.lock().await;
-
     let handler_lock = {
         let is_in_channel = manager.get(guild_id);
 
@@ -120,9 +110,7 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     let mut handler = handler_lock.lock().await;
 
-    let queue = track_queues.entry(guild_id).or_default();
-
-    queue.add_source(source, &mut handler);
+    handler.enqueue_source(source);
 
     msg.channel_id
         .send_message(ctx, |m| {
@@ -137,7 +125,7 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 e.fields(vec![
                     ("Title:", title, true),
                     ("Artist", artist, true),
-                    ("Spot in queue", queue.len().to_string(), true),
+                    ("Spot in queue", handler.queue().len().to_string(), true),
                     ("Length", format!("{}:{}", minutes, seconds), true),
                 ]);
 
