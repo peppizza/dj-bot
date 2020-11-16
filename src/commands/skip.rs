@@ -27,7 +27,7 @@ async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
         queue.skip()?;
 
         msg.channel_id
-            .say(ctx, format!("Song skipped: {} in queue", queue.len()))
+            .say(ctx, format!("Song skipped: {} in queue", queue.len() - 1))
             .await?;
     } else {
         msg.channel_id

@@ -46,16 +46,15 @@ impl TypeMapKey for ShardManagerContainer {
 pub struct TrackEndNotifier {
     pub chan_id: ChannelId,
     pub http: Arc<Http>,
-    pub name: String,
 }
 
 #[async_trait]
 impl VoiceEventHandler for TrackEndNotifier {
     async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
-        if let EventContext::Track(_) = ctx {
+        if let EventContext::Track(track_list) = ctx {
             if let Err(why) = self
                 .chan_id
-                .say(&self.http, format!("Track ended: {}", self.name))
+                .say(&self.http, format!("Tracks ended: {}", track_list.len()))
                 .await
             {
                 error!("{}", why);

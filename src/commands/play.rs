@@ -29,6 +29,8 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
+    let typing = ctx.http.start_typing(msg.channel_id.0)?;
+
     let source = if url.starts_with("http") {
         match input::ytdl(&url).await {
             Ok(source) => source,
@@ -53,6 +55,8 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
+    typing.stop();
+
     let metadata = source.metadata.clone();
 
     let guild = msg.guild(ctx).await.unwrap();
@@ -68,8 +72,6 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         .expect(VOICEQUEUEMANAGER_NOT_FOUND);
 
     let mut track_queues = queues_lock.lock().await;
-
-    let title = metadata.title.clone().unwrap();
 
     let handler_lock = {
         let is_in_channel = manager.get(guild_id);
@@ -104,11 +106,12 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                     TrackEndNotifier {
                         chan_id: msg.channel_id,
                         http: send_http,
-                        name: title,
                     },
                 );
 
-                msg.channel_id.say(ctx, "Joined channel").await?;
+                msg.channel_id
+                    .say(ctx, format!("Joined channel, {}", connect_to.mention()))
+                    .await?;
             }
 
             handler_lock
@@ -126,12 +129,16 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             m.embed(|e| {
                 let title = metadata.title.unwrap();
                 let artist = metadata.artist.unwrap();
+                let length = metadata.duration.unwrap();
+                let seconds = length.as_secs() % 60;
+                let minutes = (length.as_secs() / 60) % 60;
 
                 e.title(format!("Added song: {}", title));
                 e.fields(vec![
-                    ("Title:", title, false),
-                    ("Artist", artist, false),
-                    ("Spot in queue", queue.len().to_string(), false),
+                    ("Title:", title, true),
+                    ("Artist", artist, true),
+                    ("Spot in queue", queue.len().to_string(), true),
+                    ("Length", format!("{}:{}", minutes, seconds), true),
                 ]);
 
                 e
