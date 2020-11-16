@@ -33,6 +33,8 @@ async fn loop_command(ctx: &Context, msg: &Message) -> CommandResult {
                 msg.reply(ctx, "Enabled loop").await?;
             }
         }
+    } else {
+        msg.reply(ctx, "Not in a voice channel to loop in").await?;
     }
 
     Ok(())

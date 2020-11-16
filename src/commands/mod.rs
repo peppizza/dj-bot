@@ -9,3 +9,4 @@ pub mod play;
 pub mod remove;
 pub mod skip;
 pub mod stop;
+pub mod volume;

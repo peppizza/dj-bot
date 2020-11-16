@@ -15,13 +15,24 @@ use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{
     help::*, join::*, leave::*, loop_command::*, mute::*, ping::*, play::*, remove::*, skip::*,
-    stop::*,
+    stop::*, volume::*,
 };
 
 use state::*;
 
 #[group]
-#[commands(ping, join, leave, mute, play, skip, stop, loop_command, remove)]
+#[commands(
+    ping,
+    join,
+    leave,
+    mute,
+    play,
+    skip,
+    stop,
+    loop_command,
+    remove,
+    volume
+)]
 struct General;
 
 #[tokio::main]
