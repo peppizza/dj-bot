@@ -24,13 +24,13 @@ async fn loop_command(ctx: &Context, msg: &Message) -> CommandResult {
                     tracing::error!("{:?}, {}", why, why);
                 }
 
-                msg.reply(ctx, "Stopped loop").await?;
+                msg.channel_id.say(ctx, "Stopped loop").await?;
             } else {
                 if let Err(why) = handle.enable_loop() {
                     tracing::error!("{:?}, {}", why, why);
                 }
 
-                msg.reply(ctx, "Enabled loop").await?;
+                msg.channel_id.say(ctx, "Enabled loop").await?;
             }
         }
     } else {
