@@ -127,7 +127,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 let minutes = (length.as_secs() / 60) % 60;
 
                 if seconds.len() < 2 {
-                    seconds.push('0');
+                    seconds = format!("0{}", seconds);
                 }
 
                 e.title(format!("Added song: {}", title));
