@@ -68,6 +68,21 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         let is_in_channel = manager.get(guild_id);
 
         if let Some(handler_lock) = is_in_channel {
+            let handler_lock = handler_lock;
+            {
+                let mut handle = handler_lock.lock().await;
+
+                let send_http = ctx.http.clone();
+
+                handle.add_global_event(
+                    songbird::Event::Track(songbird::TrackEvent::End),
+                    TrackEndNotifier {
+                        chan_id: msg.channel_id,
+                        http: send_http,
+                    },
+                );
+            }
+
             handler_lock
         } else {
             let channel_id = guild
@@ -119,8 +134,12 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 let title = metadata.title.unwrap();
                 let artist = metadata.artist.unwrap();
                 let length = metadata.duration.unwrap();
-                let seconds = length.as_secs() % 60;
+                let mut seconds = format!("{}", length.as_secs() % 60);
                 let minutes = (length.as_secs() / 60) % 60;
+
+                if seconds.len() < 2 {
+                    seconds.push('0');
+                }
 
                 e.title(format!("Added song: {}", title));
                 e.fields(vec![
