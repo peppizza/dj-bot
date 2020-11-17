@@ -14,10 +14,10 @@ use tracing::error;
 #[command]
 #[only_in(guilds)]
 #[aliases("p")]
-async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let url = match args.single_quoted::<String>() {
-        Ok(url) => url,
-        Err(_) => {
+async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let url = match args.remains() {
+        Some(url) => url.to_string(),
+        None => {
             msg.channel_id
                 .say(
                     ctx,
@@ -29,33 +29,56 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
-    let typing = ctx.http.start_typing(msg.channel_id.0)?;
+    let (source, mut reply_msg) = if url.starts_with("http") {
+        let mut reply_msg = msg
+            .channel_id
+            .send_message(ctx, |m| m.embed(|e| e.title("Downloading song...")))
+            .await?;
 
-    let source = if url.starts_with("http") {
-        match Restartable::ytdl(url) {
+        let source = match Restartable::ytdl(url) {
             Ok(source) => source,
             Err(why) => {
                 error!("Err starting source: {:?}", why);
 
-                msg.channel_id.say(ctx, "Error sourcing ffmpeg").await?;
+                reply_msg
+                    .edit(ctx, |m| {
+                        m.content("There was a problem downloading the song")
+                    })
+                    .await?;
 
                 return Ok(());
             }
-        }
+        };
+
+        (source, reply_msg)
     } else {
-        match Restartable::ytdl_search(&url) {
+        let mut reply_msg = msg
+            .channel_id
+            .send_message(ctx, |m| {
+                m.embed(|e| {
+                    e.title("Searching for song...")
+                        .description(format!("Searching for `{}`", url))
+                })
+            })
+            .await?;
+
+        let source = match Restartable::ytdl_search(&url) {
             Ok(source) => source,
             Err(why) => {
                 error!("Err starting source: {:?}", why);
 
-                msg.channel_id.say(ctx, "Error sourcing ffmpeg").await?;
+                reply_msg
+                    .edit(ctx, |m| {
+                        m.content("There was a problem searching for the song")
+                    })
+                    .await?;
 
                 return Ok(());
             }
-        }
-    };
+        };
 
-    typing.stop();
+        (source, reply_msg)
+    };
 
     let source = songbird::input::Input::from(source);
     let metadata = source.metadata.clone();
@@ -68,21 +91,6 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         let is_in_channel = manager.get(guild_id);
 
         if let Some(handler_lock) = is_in_channel {
-            let handler_lock = handler_lock;
-            {
-                let mut handle = handler_lock.lock().await;
-
-                let send_http = ctx.http.clone();
-
-                handle.add_global_event(
-                    songbird::Event::Track(songbird::TrackEvent::End),
-                    TrackEndNotifier {
-                        chan_id: msg.channel_id,
-                        http: send_http,
-                    },
-                );
-            }
-
             handler_lock
         } else {
             let channel_id = guild
@@ -114,10 +122,6 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                         http: send_http,
                     },
                 );
-
-                msg.channel_id
-                    .say(ctx, format!("Joined channel, {}", connect_to.mention()))
-                    .await?;
             }
 
             handler_lock
@@ -128,8 +132,8 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     handler.enqueue_source(source);
 
-    msg.channel_id
-        .send_message(ctx, |m| {
+    reply_msg
+        .edit(ctx, |m| {
             m.embed(|e| {
                 let title = metadata.title.unwrap();
                 let artist = metadata.artist.unwrap();

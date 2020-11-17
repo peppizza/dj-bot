@@ -9,7 +9,14 @@ use super::consts::SONGBIRD_EXPECT;
 #[command]
 #[only_in(guilds)]
 async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let new_volume = args.single_quoted::<i32>()?;
+    let new_volume = match args.single_quoted::<i32>() {
+        Ok(vol) => vol,
+        Err(_) => {
+            msg.reply(ctx, "Please enter a valid number").await?;
+
+            return Ok(());
+        }
+    };
 
     if new_volume < 0 || new_volume > 100 {
         msg.reply(ctx, "Please select a value from 0 to 100")
