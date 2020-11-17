@@ -1,5 +1,3 @@
-use crate::state::TrackEndNotifier;
-
 use super::consts::SONGBIRD_EXPECT;
 use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
@@ -109,20 +107,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 }
             };
 
-            let (handler_lock, success) = manager.join(guild_id, connect_to).await;
-            if success.is_ok() {
-                let mut handle = handler_lock.lock().await;
-
-                let send_http = ctx.http.clone();
-
-                handle.add_global_event(
-                    songbird::Event::Track(songbird::TrackEvent::End),
-                    TrackEndNotifier {
-                        chan_id: msg.channel_id,
-                        http: send_http,
-                    },
-                );
-            }
+            let (handler_lock, _) = manager.join(guild_id, connect_to).await;
 
             handler_lock
         }
