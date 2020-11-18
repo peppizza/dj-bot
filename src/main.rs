@@ -14,8 +14,8 @@ use std::{collections::HashSet, env};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{
-    help::*, join::*, leave::*, loop_command::*, mute::*, ping::*, play::*, remove::*, skip::*,
-    stop::*, volume::*,
+    help::*, join::*, leave::*, loop_command::*, mute::*, pause::*, ping::*, play::*, remove::*,
+    skip::*, stop::*, volume::*,
 };
 
 use state::*;
@@ -31,7 +31,8 @@ use state::*;
     stop,
     loop_command,
     remove,
-    volume
+    volume,
+    pause
 )]
 struct General;
 

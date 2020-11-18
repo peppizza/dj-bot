@@ -4,6 +4,7 @@ pub mod join;
 pub mod leave;
 pub mod loop_command;
 pub mod mute;
+pub mod pause;
 pub mod ping;
 pub mod play;
 pub mod remove;
