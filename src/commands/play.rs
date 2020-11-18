@@ -33,7 +33,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             .send_message(ctx, |m| m.embed(|e| e.title("Downloading song...")))
             .await?;
 
-        let source = match Restartable::ytdl(url) {
+        let source = match Restartable::ytdl(url).await {
             Ok(source) => source,
             Err(why) => {
                 error!("Err starting source: {:?}", why);
@@ -60,7 +60,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             })
             .await?;
 
-        let source = match Restartable::ytdl_search(&url) {
+        let source = match Restartable::ytdl_search(&url).await {
             Ok(source) => source,
             Err(why) => {
                 error!("Err starting source: {:?}", why);
