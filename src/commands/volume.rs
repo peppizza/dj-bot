@@ -6,11 +6,32 @@ use serenity::{
 
 #[command]
 #[only_in(guilds)]
+#[aliases("vol")]
 async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    let guild_id = msg.guild_id.unwrap();
+
     let new_volume = match args.single_quoted::<i32>() {
         Ok(vol) => vol,
         Err(_) => {
-            msg.reply(ctx, "Please enter a valid number").await?;
+            let manager = songbird::get(ctx).await.unwrap().clone();
+
+            if let Some(handler_lock) = manager.get(guild_id) {
+                let handler = handler_lock.lock().await;
+                let queue = handler.queue();
+
+                if let Some(handle) = queue.current() {
+                    let mut current_volume = handle.get_info()?.await?.volume * 100f32;
+                    current_volume = current_volume.round();
+
+                    msg.channel_id
+                        .say(ctx, format!("The current volume is {}", current_volume))
+                        .await?;
+                } else {
+                    msg.reply(ctx, "Nothing playing").await?;
+                }
+            } else {
+                msg.reply(ctx, "Not in a voice channel").await?;
+            }
 
             return Ok(());
         }
@@ -23,8 +44,6 @@ async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     }
 
     let new_volume: f32 = new_volume as f32 / 100f32;
-
-    let guild_id = msg.guild_id.unwrap();
 
     let manager = songbird::get(ctx).await.unwrap().clone();
 
