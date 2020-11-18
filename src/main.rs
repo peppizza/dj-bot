@@ -15,7 +15,7 @@ use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{
     help::*, join::*, leave::*, loop_command::*, mute::*, pause::*, ping::*, play::*, remove::*,
-    resume::*, skip::*, stop::*, volume::*,
+    restart::*, resume::*, skip::*, stop::*, volume::*,
 };
 
 use state::*;
@@ -33,7 +33,8 @@ use state::*;
     remove,
     volume,
     pause,
-    resume
+    resume,
+    restart
 )]
 struct General;
 
