@@ -9,7 +9,11 @@ use serenity::{
 
 use songbird::SerenityInit;
 
-use std::{collections::HashSet, env};
+use std::{
+    collections::{HashMap, HashSet},
+    env,
+    sync::Arc,
+};
 
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
@@ -76,6 +80,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
+        data.insert::<SongMetadataContainer>(Arc::new(RwLock::new(HashMap::new())))
     }
 
     let shard_manager = client.shard_manager.clone();

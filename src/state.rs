@@ -1,11 +1,14 @@
 use serenity::{
     async_trait,
     client::bridge::gateway::ShardManager,
-    model::prelude::Activity,
-    model::{event::ResumedEvent, id::GuildId, prelude::Ready},
+    model::{
+        event::ResumedEvent,
+        id::GuildId,
+        prelude::{Activity, Ready},
+    },
     prelude::*,
 };
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 use tracing::info;
 
 pub struct Handler;
@@ -29,4 +32,18 @@ impl EventHandler for Handler {
 pub struct ShardManagerContainer;
 impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
+}
+
+#[derive(Debug)]
+pub struct SongMetadata {
+    pub title: String,
+    pub artist: String,
+    pub length: String,
+    pub pos_in_queue: usize,
+}
+
+pub struct SongMetadataContainer;
+
+impl TypeMapKey for SongMetadataContainer {
+    type Value = Arc<RwLock<HashMap<uuid::Uuid, SongMetadata>>>;
 }
