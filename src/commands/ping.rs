@@ -33,8 +33,15 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
         }
     };
 
-    msg.reply(ctx, &format!("The shard latency is {:?}", runner.latency))
-        .await?;
+    if let Some(latency) = runner.latency {
+        msg.channel_id
+            .say(ctx, &format!("Latency: {}ms", latency.as_millis()))
+            .await?;
+    } else {
+        msg.channel_id
+            .say(ctx, "Discord has not sent us the latency yet")
+            .await?;
+    }
 
     Ok(())
 }
