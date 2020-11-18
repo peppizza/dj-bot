@@ -7,6 +7,7 @@ pub mod pause;
 pub mod ping;
 pub mod play;
 pub mod remove;
+pub mod resume;
 pub mod skip;
 pub mod stop;
 pub mod volume;
