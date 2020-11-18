@@ -5,14 +5,12 @@ use serenity::{
 };
 use songbird::tracks::LoopState;
 
-use super::consts::SONGBIRD_EXPECT;
-
 #[command("loop")]
 #[only_in(guilds)]
 async fn loop_command(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
-    let manager = songbird::get(ctx).await.expect(SONGBIRD_EXPECT).clone();
+    let manager = songbird::get(ctx).await.unwrap().clone();
 
     if let Some(handler_lock) = manager.get(guild_id) {
         let handler = handler_lock.lock().await;

@@ -1,4 +1,3 @@
-use super::consts::SONGBIRD_EXPECT;
 use serenity::{
     framework::standard::{macros::command, CommandResult},
     model::prelude::*,
@@ -25,7 +24,7 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
         }
     };
 
-    let manager = songbird::get(ctx).await.expect(SONGBIRD_EXPECT).clone();
+    let manager = songbird::get(ctx).await.unwrap().clone();
 
     let (_, success) = manager.join(guild_id, connect_to).await;
 

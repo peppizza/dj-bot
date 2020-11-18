@@ -1,4 +1,3 @@
-use super::consts::SONGBIRD_EXPECT;
 use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
     model::prelude::*,
@@ -84,7 +83,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let guild = msg.guild(ctx).await.unwrap();
     let guild_id = guild.id;
 
-    let manager = songbird::get(ctx).await.expect(SONGBIRD_EXPECT).clone();
+    let manager = songbird::get(ctx).await.unwrap().clone();
     let handler_lock = {
         let is_in_channel = manager.get(guild_id);
 

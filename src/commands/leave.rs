@@ -1,5 +1,3 @@
-use super::consts::SONGBIRD_EXPECT;
-
 use serenity::{
     framework::standard::{macros::command, CommandResult},
     model::prelude::*,
@@ -11,7 +9,7 @@ use serenity::{
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
-    let manager = songbird::get(ctx).await.expect(SONGBIRD_EXPECT).clone();
+    let manager = songbird::get(ctx).await.unwrap().clone();
     let has_handler = manager.get(guild_id).is_some();
 
     if has_handler {
