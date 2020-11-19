@@ -4,6 +4,8 @@ use serenity::{
     prelude::*,
 };
 
+use crate::state::SongMetadataContainer;
+
 #[command]
 #[only_in(guilds)]
 async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
@@ -14,7 +16,18 @@ async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
     if let Some(handler_lock) = manager.get(guild_id) {
         let handler = handler_lock.lock().await;
         let queue = handler.queue();
-        queue.skip()?;
+        if let Some(handle) = queue.current() {
+            {
+                let data = ctx.data.write().await;
+                let metadata_container_lock = data.get::<SongMetadataContainer>().unwrap().clone();
+                let mut metadata_container = metadata_container_lock.write().await;
+
+                metadata_container.remove(&handle.uuid());
+            }
+            if queue.skip().is_err() {
+                msg.reply(ctx, "No song currently playing").await?;
+            }
+        }
 
         msg.channel_id
             .say(ctx, format!("Song skipped: {} in queue.", queue.len() - 1))
