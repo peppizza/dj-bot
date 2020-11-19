@@ -4,6 +4,8 @@ use serenity::{
     prelude::*,
 };
 
+use crate::state::SongMetadataContainer;
+
 #[command]
 #[only_in(guilds)]
 async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
@@ -14,6 +16,20 @@ async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
     if let Some(handler_lock) = manager.get(guild_id) {
         let handler = handler_lock.lock().await;
         let queue = handler.queue();
+        let current_queue = queue.current_queue();
+
+        {
+            let data = ctx.data.write().await;
+            let metadata_container_lock = data.get::<SongMetadataContainer>().unwrap().clone();
+            let mut metadata_container = metadata_container_lock.write().await;
+
+            for track in current_queue {
+                metadata_container.remove(&track.uuid());
+            }
+
+            msg.reply(ctx, format!("{:?}", metadata_container)).await?;
+        }
+
         queue.stop();
 
         msg.channel_id.say(ctx, "Queue cleared").await?;
