@@ -4,6 +4,8 @@ use serenity::{
     prelude::*,
 };
 
+use crate::state::SongMetadataContainer;
+
 #[command]
 #[only_in(guilds)]
 async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
@@ -17,12 +19,38 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         let queue = handler.queue();
         if !queue.is_empty() {
             if index == 1 {
+                {
+                    let current = queue.current().unwrap();
+                    let data = ctx.data.write().await;
+                    let metadata_container_lock =
+                        data.get::<SongMetadataContainer>().unwrap().clone();
+                    let mut metadata_container = metadata_container_lock.write().await;
+
+                    metadata_container.remove(&current.uuid());
+
+                    msg.reply(ctx, format!("{:?}", metadata_container)).await?;
+                }
+
                 queue.skip()?;
+
                 msg.channel_id.say(ctx, "Skipped the song").await?;
-            } else if queue.dequeue(index - 1).is_none() {
-                msg.reply(ctx, format!("There is no song at {}", index))
+            } else if index > queue.len() {
+                msg.reply(ctx, format!("There is no song at index: {}", index))
                     .await?;
+                return Ok(());
             } else {
+                {
+                    let uuid = queue.dequeue(index - 1).unwrap().uuid();
+                    let data = ctx.data.write().await;
+                    let metadata_container_lock =
+                        data.get::<SongMetadataContainer>().unwrap().clone();
+                    let mut metadata_container = metadata_container_lock.write().await;
+
+                    metadata_container.remove(&uuid);
+
+                    msg.reply(ctx, format!("{:?}", metadata_container)).await?;
+                }
+
                 msg.channel_id
                     .say(ctx, format!("Removed the song at {}", index))
                     .await?;

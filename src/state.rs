@@ -8,6 +8,7 @@ use serenity::{
     },
     prelude::*,
 };
+use songbird::input::Metadata;
 use std::{collections::HashMap, sync::Arc};
 use tracing::info;
 
@@ -34,16 +35,8 @@ impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
 }
 
-#[derive(Debug)]
-pub struct SongMetadata {
-    pub title: String,
-    pub artist: String,
-    pub length: String,
-    pub pos_in_queue: usize,
-}
-
 pub struct SongMetadataContainer;
 
 impl TypeMapKey for SongMetadataContainer {
-    type Value = Arc<RwLock<HashMap<uuid::Uuid, SongMetadata>>>;
+    type Value = Arc<RwLock<HashMap<uuid::Uuid, Metadata>>>;
 }

@@ -8,7 +8,7 @@ use songbird::input::Restartable;
 
 use tracing::error;
 
-use crate::state::{SongMetadata, SongMetadataContainer};
+use crate::state::SongMetadataContainer;
 
 #[command]
 #[only_in(guilds)]
@@ -116,8 +116,6 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let mut handler = handler_lock.lock().await;
 
-    let queue = handler.queue();
-
     let (track, _) = songbird::create_player(source);
 
     let uuid = track.uuid();
@@ -129,26 +127,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         let metadata_container_lock = data.get::<SongMetadataContainer>().unwrap().clone();
         let mut metadata_container = metadata_container_lock.write().await;
 
-        let length = send_metadata.duration.unwrap();
-
-        let mut seconds = format!("{}", length.as_secs() % 60);
-        let minutes = (length.as_secs() / 60) % 60;
-
-        if seconds.len() < 2 {
-            seconds = format!("0{}", seconds);
-        }
-
-        metadata_container.insert(
-            uuid,
-            SongMetadata {
-                title: send_metadata.title.unwrap(),
-                artist: send_metadata.artist.unwrap(),
-                length: format!("{}:{}", minutes, seconds),
-                pos_in_queue: queue.len(),
-            },
-        );
-
-        msg.reply(ctx, format!("{:?}", metadata_container)).await?;
+        metadata_container.insert(uuid, send_metadata);
     }
 
     handler.enqueue(track);

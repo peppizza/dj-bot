@@ -24,9 +24,10 @@ async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
 
                 metadata_container.remove(&handle.uuid());
             }
-            if queue.skip().is_err() {
-                msg.reply(ctx, "No song currently playing").await?;
-            }
+            queue.skip()?;
+        } else {
+            msg.reply(ctx, "No song currently playing").await?;
+            return Ok(());
         }
 
         msg.channel_id
