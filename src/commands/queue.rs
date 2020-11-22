@@ -89,6 +89,8 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
         let response = response.build();
 
         msg.channel_id.say(ctx, response).await?;
+    } else {
+        msg.reply(ctx, "Nothing playing").await?;
     }
 
     Ok(())

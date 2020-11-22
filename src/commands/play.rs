@@ -138,7 +138,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 let title = metadata.title.unwrap();
                 let artist = metadata.artist.unwrap();
                 let length = metadata.duration.unwrap();
-                let mut seconds = format!("{}", length.as_secs() % 60);
+                let mut seconds = (length.as_secs() % 60).to_string();
                 let minutes = (length.as_secs() / 60) % 60;
 
                 if seconds.len() < 2 {
@@ -149,7 +149,11 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 e.fields(vec![
                     ("Title:", title, true),
                     ("Artist", artist, true),
-                    ("Spot in queue", handler.queue().len().to_string(), true),
+                    (
+                        "Spot in queue",
+                        (handler.queue().len() - 1).to_string(),
+                        true,
+                    ),
                     ("Length", format!("{}:{}", minutes, seconds), true),
                 ]);
 

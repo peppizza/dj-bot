@@ -18,7 +18,7 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         let handler = handler_lock.lock().await;
         let queue = handler.queue();
         if !queue.is_empty() {
-            if index == 1 {
+            if index == 0 {
                 {
                     let current = queue.current().unwrap();
                     let data = ctx.data.write().await;
@@ -37,18 +37,21 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                     .await?;
                 return Ok(());
             } else {
-                {
-                    let uuid = queue.dequeue(index - 1).unwrap().uuid();
+                let title = {
+                    let uuid = queue.dequeue(index).unwrap().uuid();
                     let data = ctx.data.write().await;
                     let metadata_container_lock =
                         data.get::<SongMetadataContainer>().unwrap().clone();
                     let mut metadata_container = metadata_container_lock.write().await;
 
-                    metadata_container.remove(&uuid);
+                    metadata_container.remove(&uuid)
                 }
+                .unwrap()
+                .title
+                .unwrap();
 
                 msg.channel_id
-                    .say(ctx, format!("Removed the song at {}", index))
+                    .say(ctx, format!("Removed song: `{}`", title))
                     .await?;
             }
         } else {

@@ -18,8 +18,8 @@ use std::{
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{
-    help::*, join::*, leave::*, loop_command::*, mute::*, pause::*, ping::*, play::*, queue::*,
-    remove::*, restart::*, resume::*, skip::*, stop::*, volume::*,
+    help::*, join::*, leave::*, loop_command::*, mute::*, now_playing::*, pause::*, ping::*,
+    play::*, queue::*, remove::*, restart::*, resume::*, skip::*, stop::*, volume::*,
 };
 
 use state::*;
@@ -39,7 +39,8 @@ use state::*;
     pause,
     resume,
     restart,
-    queue
+    queue,
+    now_playing
 )]
 struct General;
 
