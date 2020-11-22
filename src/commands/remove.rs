@@ -27,8 +27,6 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                     let mut metadata_container = metadata_container_lock.write().await;
 
                     metadata_container.remove(&current.uuid());
-
-                    msg.reply(ctx, format!("{:?}", metadata_container)).await?;
                 }
 
                 queue.skip()?;
@@ -47,8 +45,6 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                     let mut metadata_container = metadata_container_lock.write().await;
 
                     metadata_container.remove(&uuid);
-
-                    msg.reply(ctx, format!("{:?}", metadata_container)).await?;
                 }
 
                 msg.channel_id
