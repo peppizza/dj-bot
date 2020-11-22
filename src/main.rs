@@ -1,4 +1,5 @@
 mod commands;
+mod db;
 mod state;
 
 use serenity::{
@@ -9,6 +10,8 @@ use serenity::{
 
 use songbird::SerenityInit;
 
+use sqlx::PgPool;
+
 use std::{
     collections::{HashMap, HashSet},
     env,
@@ -18,8 +21,8 @@ use std::{
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{
-    help::*, join::*, leave::*, loop_command::*, mute::*, now_playing::*, pause::*, ping::*,
-    play::*, queue::*, remove::*, restart::*, resume::*, skip::*, stop::*, volume::*,
+    db_testing::*, help::*, join::*, leave::*, loop_command::*, mute::*, now_playing::*, pause::*,
+    ping::*, play::*, queue::*, remove::*, restart::*, resume::*, skip::*, stop::*, volume::*,
 };
 
 use state::*;
@@ -44,6 +47,10 @@ use state::*;
 )]
 struct General;
 
+#[group]
+#[commands(get_author_perms, set_author_perms)]
+struct Owner;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv()?;
@@ -53,6 +60,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .finish();
 
     tracing::subscriber::set_global_default(subscriber)?;
+
+    let pool = PgPool::connect(&env::var("DATABASE_URL")?).await?;
 
     let token = env::var("DISCORD_TOKEN")?;
 
@@ -71,7 +80,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let framework = StandardFramework::new()
         .configure(|c| c.owners(owners).prefix("~"))
         .help(&MY_HELP)
-        .group(&GENERAL_GROUP);
+        .group(&GENERAL_GROUP)
+        .group(&OWNER_GROUP);
 
     let mut client = Client::builder(&token)
         .framework(framework)
@@ -82,7 +92,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
-        data.insert::<SongMetadataContainer>(Arc::new(RwLock::new(HashMap::new())))
+        data.insert::<SongMetadataContainer>(Arc::new(RwLock::new(HashMap::new())));
+        data.insert::<PoolContainer>(pool);
     }
 
     let shard_manager = client.shard_manager.clone();

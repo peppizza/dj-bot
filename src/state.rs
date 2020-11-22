@@ -10,6 +10,7 @@ use serenity::{
     prelude::*,
 };
 use songbird::input::Metadata;
+use sqlx::{Pool, Postgres};
 use std::{collections::HashMap, sync::Arc};
 use tracing::info;
 
@@ -45,4 +46,10 @@ pub struct MetadataWithAuthor {
 
 impl TypeMapKey for SongMetadataContainer {
     type Value = Arc<RwLock<HashMap<uuid::Uuid, MetadataWithAuthor>>>;
+}
+
+pub struct PoolContainer;
+
+impl TypeMapKey for PoolContainer {
+    type Value = Pool<Postgres>;
 }
