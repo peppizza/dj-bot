@@ -2,14 +2,11 @@ use serenity::{
     framework::standard::{macros::command, CommandResult},
     model::prelude::*,
     prelude::*,
-    utils::MessageBuilder,
 };
-
-use songbird::tracks::PlayMode;
 
 use crate::state::SongMetadataContainer;
 
-use super::util::format_duration_to_mm_ss;
+use super::util::formatted_song_listing;
 
 #[command]
 #[only_in(guilds)]
@@ -29,31 +26,10 @@ async fn now_playing(ctx: &Context, msg: &Message) -> CommandResult {
 
             let current_track_metadata = metadata_container.get(&current_track.uuid()).unwrap();
 
-            let current_track_info = current_track.get_info()?.await?;
-
-            let is_playing = matches!(current_track_info.playing, PlayMode::Play);
-
-            let track_pos = current_track_info.position;
-
-            let track_pos_mm_ss = format_duration_to_mm_ss(track_pos);
-
-            let track_len = current_track_metadata.duration.unwrap();
-
-            let track_len_mm_ss = format_duration_to_mm_ss(track_len);
-
-            let track_title = current_track_metadata.title.clone();
-
-            let mut response = MessageBuilder::new();
-
-            if is_playing {
-                response.push_bold(format!("[ {}/{} ]▶ ", track_pos_mm_ss, track_len_mm_ss));
-            } else {
-                response.push_bold(format!("[ {}/{} ]⏸ ", track_pos_mm_ss, track_len_mm_ss));
-            }
-
-            response.push(format!("{} ", track_title.unwrap()));
-
-            let response = response.build();
+            let response =
+                formatted_song_listing(current_track_metadata, &current_track, true, false, None)
+                    .await?
+                    .build();
 
             msg.channel_id.say(ctx, response).await?;
         } else {
