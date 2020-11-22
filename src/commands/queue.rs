@@ -30,14 +30,18 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
         let mut metadata_list = Vec::new();
 
         for handle in &current_queue {
-            let metadata = metadata_container.get(&handle.uuid()).unwrap().clone();
+            let metadata = metadata_container
+                .get(&handle.uuid())
+                .unwrap()
+                .metadata
+                .clone();
 
             metadata_list.push(metadata);
         }
 
         let current = queue.current().unwrap();
 
-        let metadata = metadata_container.get(&current.uuid()).unwrap();
+        let metadata = &metadata_container.get(&current.uuid()).unwrap().metadata;
 
         let mut response = formatted_song_listing(metadata, &current, true, true, None).await?;
 

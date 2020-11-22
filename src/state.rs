@@ -4,6 +4,7 @@ use serenity::{
     model::{
         event::ResumedEvent,
         id::GuildId,
+        id::UserId,
         prelude::{Activity, Ready},
     },
     prelude::*,
@@ -37,6 +38,11 @@ impl TypeMapKey for ShardManagerContainer {
 
 pub struct SongMetadataContainer;
 
+pub struct MetadataWithAuthor {
+    pub metadata: Arc<Metadata>,
+    pub author: UserId,
+}
+
 impl TypeMapKey for SongMetadataContainer {
-    type Value = Arc<RwLock<HashMap<uuid::Uuid, Metadata>>>;
+    type Value = Arc<RwLock<HashMap<uuid::Uuid, MetadataWithAuthor>>>;
 }

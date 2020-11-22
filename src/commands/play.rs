@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
     model::prelude::*,
@@ -8,7 +10,7 @@ use songbird::input::Restartable;
 
 use tracing::error;
 
-use crate::state::SongMetadataContainer;
+use crate::state::{MetadataWithAuthor, SongMetadataContainer};
 
 #[command]
 #[only_in(guilds)]
@@ -127,7 +129,13 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         let metadata_container_lock = data.get::<SongMetadataContainer>().unwrap().clone();
         let mut metadata_container = metadata_container_lock.write().await;
 
-        metadata_container.insert(uuid, send_metadata);
+        metadata_container.insert(
+            uuid,
+            MetadataWithAuthor {
+                metadata: Arc::new(send_metadata),
+                author: msg.author.id,
+            },
+        );
     }
 
     handler.enqueue(track);

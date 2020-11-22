@@ -47,7 +47,9 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                     metadata_container.remove(&uuid)
                 }
                 .unwrap()
+                .metadata
                 .title
+                .clone()
                 .unwrap();
 
                 msg.channel_id

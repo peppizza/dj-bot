@@ -24,10 +24,14 @@ async fn now_playing(ctx: &Context, msg: &Message) -> CommandResult {
             let metadata_container_lock = data.get::<SongMetadataContainer>().unwrap().clone();
             let metadata_container = metadata_container_lock.read().await;
 
-            let current_track_metadata = metadata_container.get(&current_track.uuid()).unwrap();
+            let current_track_metadata = metadata_container
+                .get(&current_track.uuid())
+                .unwrap()
+                .metadata
+                .clone();
 
             let response =
-                formatted_song_listing(current_track_metadata, &current_track, true, false, None)
+                formatted_song_listing(&current_track_metadata, &current_track, true, false, None)
                     .await?
                     .build();
 
