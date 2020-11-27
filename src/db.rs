@@ -15,7 +15,18 @@ impl From<i16> for UserPerm {
             1 => Self::User,
             2 => Self::DJ,
             3 => Self::Admin,
-            _ => unreachable!(),
+            _ => panic!("Can only be 0-3"),
+        }
+    }
+}
+
+impl Into<i16> for UserPerm {
+    fn into(self) -> i16 {
+        match self {
+            Self::None => 0,
+            Self::User => 1,
+            Self::DJ => 2,
+            Self::Admin => 3,
         }
     }
 }
@@ -47,8 +58,10 @@ pub async fn set_user_perms(
     pool: &PgPool,
     guild_id: i64,
     user_id: i64,
-    perm_level: i16,
+    perm_level: UserPerm,
 ) -> anyhow::Result<UserPerm> {
+    let perm_level: i16 = perm_level.into();
+
     let rec = sqlx::query!(
         r#"
         INSERT INTO perms (guild_id, user_id, perm_level) VALUES ($1, $2, $3)
@@ -75,8 +88,10 @@ pub struct UserIdPermLevel {
 pub async fn get_all_users_with_perm(
     pool: &PgPool,
     guild_id: i64,
-    perm_level: i16,
+    perm_level: UserPerm,
 ) -> anyhow::Result<Vec<UserIdPermLevel>> {
+    let perm_level: i16 = perm_level.into();
+
     let rec = sqlx::query_as!(
         UserIdPermLevel,
         r#"
@@ -91,4 +106,33 @@ pub async fn get_all_users_with_perm(
     .await?;
 
     Ok(rec)
+}
+
+pub async fn delete_user(pool: &PgPool, guild_id: i64, user_id: i64) -> anyhow::Result<i64> {
+    let rec = sqlx::query!(
+        r#"
+        DELETE FROM perms
+        WHERE user_id = $1 AND guild_id = $2
+        RETURNING user_id"#,
+        user_id,
+        guild_id
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(rec.user_id)
+}
+
+pub async fn delete_guild(pool: &PgPool, guild_id: i64) -> anyhow::Result<i64> {
+    let rec = sqlx::query!(
+        r#"
+        DELETE FROM perms
+        WHERE guild_id = $1
+        RETURNING guild_id"#,
+        guild_id
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(rec.guild_id)
 }

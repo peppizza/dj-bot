@@ -48,7 +48,13 @@ use state::*;
 struct General;
 
 #[group]
-#[commands(get_author_perms, set_author_perms, get_perms_in_guild)]
+#[commands(
+    get_author_perms,
+    set_author_perms,
+    get_perms_in_guild,
+    delete_author,
+    delete_current_guild
+)]
 struct Owner;
 
 #[tokio::main]
