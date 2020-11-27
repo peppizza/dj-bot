@@ -25,6 +25,8 @@ use commands::{
     ping::*, play::*, queue::*, remove::*, restart::*, resume::*, skip::*, stop::*, volume::*,
 };
 
+use commands::perms::admin::*;
+
 use state::*;
 
 #[group]
@@ -57,6 +59,10 @@ struct General;
 )]
 struct Owner;
 
+#[group]
+#[commands(admin)]
+struct Moderation;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv()?;
@@ -87,6 +93,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .configure(|c| c.owners(owners).prefix("~"))
         .help(&MY_HELP)
         .group(&GENERAL_GROUP)
+        .group(&MODERATION_GROUP)
         .group(&OWNER_GROUP);
 
     let mut client = Client::builder(&token)

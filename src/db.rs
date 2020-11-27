@@ -5,13 +5,13 @@ pub enum UserPerm {
     Admin,
     DJ,
     User,
-    None,
+    BlackListed,
 }
 
 impl From<i16> for UserPerm {
     fn from(i: i16) -> Self {
         match i {
-            0 => Self::None,
+            0 => Self::BlackListed,
             1 => Self::User,
             2 => Self::DJ,
             3 => Self::Admin,
@@ -23,7 +23,7 @@ impl From<i16> for UserPerm {
 impl Into<i16> for UserPerm {
     fn into(self) -> i16 {
         match self {
-            Self::None => 0,
+            Self::BlackListed => 0,
             Self::User => 1,
             Self::DJ => 2,
             Self::Admin => 3,
@@ -81,8 +81,8 @@ pub async fn set_user_perms(
 
 #[derive(Debug)]
 pub struct UserIdPermLevel {
-    user_id: i64,
-    perm_level: i16,
+    pub user_id: i64,
+    pub perm_level: i16,
 }
 
 pub async fn get_all_users_with_perm(

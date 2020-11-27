@@ -6,6 +6,7 @@ pub mod loop_command;
 pub mod mute;
 pub mod now_playing;
 pub mod pause;
+pub mod perms;
 pub mod ping;
 pub mod play;
 pub mod queue;
