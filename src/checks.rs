@@ -24,7 +24,7 @@ pub async fn player_check(
         "join" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
         "leave" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
         "loop" => map_check_result(allow_only_dj(ctx, msg).await),
-        "mute" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
+        "mute" => map_check_result(allow_only_dj(ctx, msg).await),
         "now_playing" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
         "pause" => map_check_result(allow_only_dj(ctx, msg).await),
         "play" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
