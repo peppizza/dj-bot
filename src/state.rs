@@ -1,6 +1,6 @@
 use serenity::{async_trait, client::bridge::gateway::ShardManager, model::prelude::*, prelude::*};
 use songbird::input::Metadata;
-use sqlx::{Pool, Postgres};
+use sqlx::PgPool;
 use std::{collections::HashMap, sync::Arc};
 use tracing::{error, info};
 
@@ -57,5 +57,5 @@ impl TypeMapKey for SongMetadataContainer {
 pub struct PoolContainer;
 
 impl TypeMapKey for PoolContainer {
-    type Value = Pool<Postgres>;
+    type Value = PgPool;
 }
