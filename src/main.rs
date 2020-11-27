@@ -4,6 +4,7 @@ mod db;
 mod state;
 
 use serenity::{
+    client::bridge::gateway::GatewayIntents,
     framework::standard::Reason,
     framework::{
         standard::{
@@ -134,6 +135,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .framework(framework)
         .event_handler(Handler)
         .register_songbird()
+        .intents(
+            GatewayIntents::GUILDS
+                | GatewayIntents::GUILD_MESSAGES
+                | GatewayIntents::GUILD_VOICE_STATES,
+        )
         .await?;
 
     {
