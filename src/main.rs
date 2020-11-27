@@ -34,7 +34,7 @@ use commands::{
     ping::*, play::*, queue::*, remove::*, restart::*, resume::*, skip::*, stop::*, volume::*,
 };
 
-use commands::perms::admin::*;
+use commands::perms::{admin::*, blacklist::*, dj::*};
 
 use state::*;
 
@@ -69,7 +69,7 @@ struct General;
 struct Owner;
 
 #[group]
-#[commands(admin)]
+#[commands(admin, dj, blacklist)]
 struct Moderation;
 
 #[hook]

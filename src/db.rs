@@ -2,7 +2,7 @@ use sqlx::postgres::PgPool;
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum UserPerm {
-    BlackListed,
+    Blacklisted,
     User,
     DJ,
     Admin,
@@ -12,7 +12,7 @@ impl From<i16> for UserPerm {
     fn from(i: i16) -> Self {
         match i {
             0 => Self::User,
-            1 => Self::BlackListed,
+            1 => Self::Blacklisted,
             2 => Self::DJ,
             3 => Self::Admin,
             _ => panic!("Can only be 0-3"),
@@ -24,7 +24,7 @@ impl Into<i16> for UserPerm {
     fn into(self) -> i16 {
         match self {
             Self::User => 0,
-            Self::BlackListed => 1,
+            Self::Blacklisted => 1,
             Self::DJ => 2,
             Self::Admin => 3,
         }
@@ -39,7 +39,7 @@ mod tests {
     fn test_ord() {
         assert!(UserPerm::Admin > UserPerm::DJ);
         assert!(UserPerm::DJ > UserPerm::User);
-        assert!(UserPerm::User > UserPerm::BlackListed);
+        assert!(UserPerm::User > UserPerm::Blacklisted);
     }
 }
 

@@ -1,9 +1,17 @@
 pub mod admin;
+pub mod blacklist;
 pub mod dj;
-pub mod user;
 mod util {
     use serenity::{
-        framework::standard::Args, model::prelude::*, prelude::*, utils::parse_mention,
+        framework::standard::{macros::check, Args, CheckResult, CommandOptions},
+        model::prelude::*,
+        prelude::*,
+        utils::parse_mention,
+    };
+
+    use crate::{
+        db::{get_user_perms, UserPerm},
+        state::PoolContainer,
     };
 
     pub const INSUFFICIENT_PERMISSIONS_MESSAGE: &str =
@@ -43,5 +51,37 @@ mod util {
         };
 
         Ok(Some(user))
+    }
+
+    #[check]
+    #[name = "Perms"]
+    pub async fn perms_check(
+        ctx: &Context,
+        msg: &Message,
+        _: &mut Args,
+        _: &CommandOptions,
+    ) -> CheckResult {
+        let guild = msg.guild(ctx).await.unwrap();
+        let perms = guild.member_permissions(ctx, msg.author.id).await.unwrap();
+
+        if perms.administrator() {
+            CheckResult::Success
+        } else {
+            let data = ctx.data.read().await;
+            let pool = data.get::<PoolContainer>().unwrap();
+
+            if let Some(perm_level) = get_user_perms(pool, guild.id.into(), msg.author.id.into())
+                .await
+                .unwrap()
+            {
+                if let UserPerm::Admin = perm_level {
+                    CheckResult::Success
+                } else {
+                    CheckResult::new_user(INSUFFICIENT_PERMISSIONS_MESSAGE)
+                }
+            } else {
+                CheckResult::new_user(INSUFFICIENT_PERMISSIONS_MESSAGE)
+            }
+        }
     }
 }

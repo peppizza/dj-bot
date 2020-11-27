@@ -16,10 +16,10 @@ use super::util::*;
 #[command]
 #[only_in(guilds)]
 #[sub_commands(add, del, list)]
-async fn admin(ctx: &Context, msg: &Message) -> CommandResult {
+async fn blacklist(ctx: &Context, msg: &Message) -> CommandResult {
     msg.reply(
         ctx,
-        "The available commands are `admin add`, `admin del`, and `admin list`",
+        "The available commands are `blacklist add`, `blacklist del`, and `blacklist list`",
     )
     .await?;
 
@@ -44,7 +44,7 @@ async fn add(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         pool,
         guild_id.into(),
         user.id.try_into().unwrap(),
-        UserPerm::Admin,
+        UserPerm::Blacklisted,
     )
     .await?;
 
@@ -89,15 +89,16 @@ async fn list(ctx: &Context, msg: &Message) -> CommandResult {
 
     let guild_id = msg.guild_id.unwrap();
 
-    let returned_users = get_all_users_with_perm(pool, guild_id.into(), UserPerm::Admin).await?;
+    let returned_users =
+        get_all_users_with_perm(pool, guild_id.into(), UserPerm::Blacklisted).await?;
 
     if returned_users.is_empty() {
-        msg.channel_id.say(ctx, "No users with Admin role").await?;
+        msg.channel_id.say(ctx, "No users blacklisted").await?;
     } else {
         msg.channel_id
             .send_message(ctx, |m| {
                 m.embed(|e| {
-                    e.title("Users with admin permission");
+                    e.title("Blacklisted Users");
                     let mut user_list = "".to_string();
                     for user in returned_users {
                         let user = UserId(user.user_id.try_into().unwrap());
@@ -105,7 +106,6 @@ async fn list(ctx: &Context, msg: &Message) -> CommandResult {
                     }
 
                     e.description(user_list);
-
                     e
                 })
             })
