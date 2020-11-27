@@ -65,3 +65,30 @@ pub async fn set_user_perms(
 
     Ok(rec.perm_level.into())
 }
+
+#[derive(Debug)]
+pub struct UserIdPermLevel {
+    user_id: i64,
+    perm_level: i16,
+}
+
+pub async fn get_all_users_with_perm(
+    pool: &PgPool,
+    guild_id: i64,
+    perm_level: i16,
+) -> anyhow::Result<Vec<UserIdPermLevel>> {
+    let rec = sqlx::query_as!(
+        UserIdPermLevel,
+        r#"
+        SELECT user_id, perm_level
+        FROM perms
+        WHERE guild_id = $1 AND perm_level = $2
+        "#,
+        guild_id,
+        perm_level
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rec)
+}
