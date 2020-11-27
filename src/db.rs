@@ -8,53 +8,60 @@ pub enum UserPerm {
     None,
 }
 
-pub async fn get_user_perms(pool: &PgPool, user_id: i64) -> anyhow::Result<UserPerm> {
+impl From<i16> for UserPerm {
+    fn from(i: i16) -> Self {
+        match i {
+            0 => Self::None,
+            1 => Self::User,
+            2 => Self::DJ,
+            3 => Self::Admin,
+            _ => unreachable!(),
+        }
+    }
+}
+
+pub async fn get_user_perms(
+    pool: &PgPool,
+    guild_id: i64,
+    user_id: i64,
+) -> anyhow::Result<Option<UserPerm>> {
     let rec = match sqlx::query!(
         r#"
-        SELECT permlevel
+        SELECT perm_level
         FROM perms
-        WHERE id = $1"#,
+        WHERE guild_id = $1 AND user_id = $2"#,
+        guild_id,
         user_id
     )
     .fetch_optional(pool)
     .await?
     {
         Some(row) => row,
-        None => return Ok(UserPerm::None),
+        None => return Ok(None),
     };
 
-    Ok(perm_level_to_user_perm(rec.permlevel))
+    Ok(Some(rec.perm_level.into()))
 }
 
 pub async fn set_user_perms(
     pool: &PgPool,
+    guild_id: i64,
     user_id: i64,
     perm_level: i16,
 ) -> anyhow::Result<UserPerm> {
     let rec = sqlx::query!(
         r#"
-        INSERT INTO perms (id, permlevel)
-        VALUES($1, $2)
-        ON CONFLICT (id)
-        DO
-            UPDATE SET permlevel = EXCLUDED.permlevel
-        RETURNING permlevel
+        INSERT INTO perms (guild_id, user_id, perm_level) VALUES ($1, $2, $3)
+        ON CONFLICT (guild_id, user_id)
+        DO UPDATE SET perm_level = $3
+        RETURNING perm_level
         "#,
+        guild_id,
         user_id,
         perm_level
     )
     .fetch_one(pool)
     .await?;
 
-    Ok(perm_level_to_user_perm(rec.permlevel))
-}
-
-fn perm_level_to_user_perm(perm_level: i16) -> UserPerm {
-    match perm_level {
-        0 => UserPerm::None,
-        1 => UserPerm::User,
-        2 => UserPerm::DJ,
-        3 => UserPerm::Admin,
-        _ => unreachable!(),
-    }
+    Ok(rec.perm_level.into())
 }

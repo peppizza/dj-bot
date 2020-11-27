@@ -16,7 +16,7 @@ async fn get_author_perms(ctx: &Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
     let pool = data.get::<PoolContainer>().unwrap();
 
-    let user_perms = get_user_perms(pool, msg.author.id.into()).await?;
+    let user_perms = get_user_perms(pool, msg.guild_id.unwrap().into(), msg.author.id.into()).await;
 
     msg.reply(ctx, format!("{:?}", user_perms)).await?;
 
@@ -32,7 +32,13 @@ async fn set_author_perms(ctx: &Context, msg: &Message, mut args: Args) -> Comma
 
     let perm_level = args.single::<i16>()?;
 
-    let perm_level = set_user_perms(pool, msg.author.id.into(), perm_level).await?;
+    let perm_level = set_user_perms(
+        pool,
+        msg.guild_id.unwrap().into(),
+        msg.author.id.into(),
+        perm_level,
+    )
+    .await;
 
     msg.reply(ctx, format!("{:?}", perm_level)).await?;
 
