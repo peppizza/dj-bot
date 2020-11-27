@@ -1,17 +1,52 @@
 use std::convert::TryInto;
 
 use serenity::{
-    framework::standard::{macros::command, Args, CommandResult},
+    framework::standard::{
+        macros::{check, command},
+        Args, CheckResult, CommandOptions, CommandResult,
+    },
     model::prelude::*,
     prelude::*,
 };
 
 use crate::{
-    db::{get_all_users_with_perm, set_user_perms, UserPerm},
+    db::{get_all_users_with_perm, get_user_perms, set_user_perms, UserPerm},
     state::PoolContainer,
 };
 
 use super::util::args_to_user;
+
+#[check]
+#[name = "Admin"]
+async fn admin_check(
+    ctx: &Context,
+    msg: &Message,
+    _: &mut Args,
+    _: &CommandOptions,
+) -> CheckResult {
+    let guild = msg.guild(ctx).await.unwrap();
+    let perms = guild.member_permissions(ctx, msg.author.id).await.unwrap();
+
+    if perms.administrator() {
+        CheckResult::Success
+    } else {
+        let data = ctx.data.read().await;
+        let pool = data.get::<PoolContainer>().unwrap();
+
+        if let Some(perm_level) = get_user_perms(pool, guild.id.into(), msg.author.id.into())
+            .await
+            .unwrap()
+        {
+            if let UserPerm::Admin = perm_level {
+                CheckResult::Success
+            } else {
+                CheckResult::new_user("You have insufficient permissions to run this command")
+            }
+        } else {
+            CheckResult::new_user("You have insufficient permissions to run this command")
+        }
+    }
+}
 
 #[command]
 #[only_in(guilds)]
@@ -28,6 +63,7 @@ async fn admin(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 #[only_in(guilds)]
+#[checks(Admin)]
 async fn add(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let user = match args_to_user(ctx, msg, args).await? {
         Some(user) => user,
@@ -59,6 +95,7 @@ async fn add(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
 #[command]
 #[only_in(guilds)]
+#[checks(Admin)]
 async fn del(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let user = match args_to_user(ctx, msg, args).await? {
         Some(user) => user,

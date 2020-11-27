@@ -3,14 +3,23 @@ mod db;
 mod state;
 
 use serenity::{
-    framework::{standard::macros::group, StandardFramework},
+    framework::standard::Reason,
+    framework::{
+        standard::{
+            macros::{group, hook},
+            DispatchError,
+        },
+        StandardFramework,
+    },
     http::Http,
+    model::channel::Message,
     prelude::*,
 };
 
 use songbird::SerenityInit;
 
 use sqlx::PgPool;
+use tracing::warn;
 
 use std::{
     collections::{HashMap, HashSet},
@@ -63,6 +72,27 @@ struct Owner;
 #[commands(admin)]
 struct Moderation;
 
+#[hook]
+async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
+    match error {
+        DispatchError::CheckFailed(_, reason) => {
+            if let Reason::User(reason) = reason {
+                let _ = msg.reply(ctx, reason).await;
+            }
+        }
+        DispatchError::Ratelimited(duration) => {
+            let _ = msg
+                .channel_id
+                .say(
+                    ctx,
+                    format!("Try this again in {} seconds.", duration.as_secs()),
+                )
+                .await;
+        }
+        e => warn!("{:?}", e),
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv()?;
@@ -91,6 +121,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let framework = StandardFramework::new()
         .configure(|c| c.owners(owners).prefix("~"))
+        .on_dispatch_error(dispatch_error)
         .help(&MY_HELP)
         .group(&GENERAL_GROUP)
         .group(&MODERATION_GROUP)
