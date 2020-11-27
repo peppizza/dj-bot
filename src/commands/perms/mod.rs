@@ -1,7 +1,7 @@
 pub mod admin;
 pub mod blacklist;
 pub mod dj;
-mod util {
+pub mod util {
     use serenity::{
         framework::standard::{macros::check, Args, CheckResult, CommandOptions},
         model::prelude::*,

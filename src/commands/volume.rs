@@ -4,9 +4,12 @@ use serenity::{
     prelude::*,
 };
 
+use crate::checks::*;
+
 #[command]
 #[only_in(guilds)]
 #[aliases("vol")]
+#[checks(Player)]
 async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

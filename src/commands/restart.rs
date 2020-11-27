@@ -6,8 +6,11 @@ use serenity::{
     prelude::*,
 };
 
+use crate::checks::*;
+
 #[command]
 #[only_in(guilds)]
+#[checks(Player)]
 async fn restart(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

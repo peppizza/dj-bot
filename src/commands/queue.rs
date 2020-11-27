@@ -5,10 +5,11 @@ use serenity::{
 };
 
 use super::util::{format_duration_to_mm_ss, formatted_song_listing};
-use crate::state::SongMetadataContainer;
+use crate::{checks::*, state::SongMetadataContainer};
 
 #[command]
 #[only_in(guilds)]
+#[checks(Player)]
 async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

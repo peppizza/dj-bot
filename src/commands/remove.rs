@@ -4,10 +4,11 @@ use serenity::{
     prelude::*,
 };
 
-use crate::state::SongMetadataContainer;
+use crate::{checks::*, state::SongMetadataContainer};
 
 #[command]
 #[only_in(guilds)]
+#[checks(Player)]
 async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
     let index = args.single_quoted::<usize>()?;

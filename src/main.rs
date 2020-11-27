@@ -1,3 +1,4 @@
+mod checks;
 mod commands;
 mod db;
 mod state;
@@ -19,7 +20,7 @@ use serenity::{
 use songbird::SerenityInit;
 
 use sqlx::PgPool;
-use tracing::warn;
+use tracing::{info, warn};
 
 use std::{
     collections::{HashMap, HashSet},
@@ -75,11 +76,13 @@ struct Moderation;
 #[hook]
 async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
     match error {
-        DispatchError::CheckFailed(_, reason) => {
-            if let Reason::User(reason) = reason {
+        DispatchError::CheckFailed(_, reason) => match reason {
+            Reason::Log(log) => info!("{:?}", log),
+            Reason::User(reason) => {
                 let _ = msg.reply(ctx, reason).await;
             }
-        }
+            _ => return,
+        },
         DispatchError::Ratelimited(duration) => {
             let _ = msg
                 .channel_id

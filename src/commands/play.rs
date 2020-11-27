@@ -10,11 +10,15 @@ use songbird::input::Restartable;
 
 use tracing::error;
 
-use crate::state::{MetadataWithAuthor, SongMetadataContainer};
+use crate::{
+    checks::*,
+    state::{MetadataWithAuthor, SongMetadataContainer},
+};
 
 #[command]
 #[only_in(guilds)]
 #[aliases("p")]
+#[checks(Player)]
 async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let url = match args.remains() {
         Some(url) => url.to_string(),

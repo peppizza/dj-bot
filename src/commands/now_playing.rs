@@ -4,13 +4,14 @@ use serenity::{
     prelude::*,
 };
 
-use crate::state::SongMetadataContainer;
+use crate::{checks::*, state::SongMetadataContainer};
 
 use super::util::formatted_song_listing;
 
 #[command]
 #[only_in(guilds)]
 #[aliases("np", "playing")]
+#[checks(Player)]
 async fn now_playing(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

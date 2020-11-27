@@ -5,8 +5,11 @@ use serenity::{
 };
 use songbird::tracks::LoopState;
 
+use crate::checks::*;
+
 #[command("loop")]
 #[only_in(guilds)]
+#[checks(Player)]
 async fn loop_command(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

@@ -4,8 +4,11 @@ use serenity::{
     prelude::*,
 };
 
+use crate::checks::*;
+
 #[command]
 #[only_in(guilds)]
+#[checks(Player)]
 async fn join(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     let guild_id = guild.id;
