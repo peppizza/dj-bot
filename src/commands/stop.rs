@@ -21,7 +21,7 @@ async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
             let current_queue = queue.current_queue();
 
             if !current_queue.is_empty() {
-                let data = ctx.data.write().await;
+                let data = ctx.data.read().await;
                 let metadata_container_lock = data.get::<SongMetadataContainer>().unwrap().clone();
                 let mut metadata_container = metadata_container_lock.write().await;
 

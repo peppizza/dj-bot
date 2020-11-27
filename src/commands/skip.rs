@@ -19,7 +19,7 @@ async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
         let queue = handler.queue();
         if let Some(handle) = queue.current() {
             {
-                let data = ctx.data.write().await;
+                let data = ctx.data.read().await;
                 let metadata_container_lock = data.get::<SongMetadataContainer>().unwrap().clone();
                 let mut metadata_container = metadata_container_lock.write().await;
 

@@ -129,7 +129,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let send_metadata = metadata.clone();
 
     {
-        let data = ctx.data.write().await;
+        let data = ctx.data.read().await;
         let metadata_container_lock = data.get::<SongMetadataContainer>().unwrap().clone();
         let mut metadata_container = metadata_container_lock.write().await;
 

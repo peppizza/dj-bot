@@ -22,7 +22,7 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             if index == 0 {
                 {
                     let current = queue.current().unwrap();
-                    let data = ctx.data.write().await;
+                    let data = ctx.data.read().await;
                     let metadata_container_lock =
                         data.get::<SongMetadataContainer>().unwrap().clone();
                     let mut metadata_container = metadata_container_lock.write().await;
@@ -40,7 +40,7 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             } else {
                 let title = {
                     let uuid = queue.dequeue(index).unwrap().uuid();
-                    let data = ctx.data.write().await;
+                    let data = ctx.data.read().await;
                     let metadata_container_lock =
                         data.get::<SongMetadataContainer>().unwrap().clone();
                     let mut metadata_container = metadata_container_lock.write().await;
