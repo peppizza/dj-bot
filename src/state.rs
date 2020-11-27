@@ -25,7 +25,13 @@ impl EventHandler for Handler {
             let pool = data.get::<PoolContainer>().unwrap();
 
             match delete_guild(pool, incomplete.id.into()).await {
-                Ok(guild_id) => info!("Removed db entries for {}", guild_id),
+                Ok(guild_id) => {
+                    if let Some(guild_id) = guild_id {
+                        info!("Removed db entries for {}", guild_id);
+                    } else {
+                        info!("There was no entries for {}", incomplete.id);
+                    }
+                }
                 Err(why) => error!("Could not remove db entries: {:?}", why),
             };
         }

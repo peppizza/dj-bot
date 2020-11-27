@@ -123,16 +123,20 @@ pub async fn delete_user(pool: &PgPool, guild_id: i64, user_id: i64) -> anyhow::
     Ok(rec.user_id)
 }
 
-pub async fn delete_guild(pool: &PgPool, guild_id: i64) -> anyhow::Result<i64> {
-    let rec = sqlx::query!(
+pub async fn delete_guild(pool: &PgPool, guild_id: i64) -> anyhow::Result<Option<i64>> {
+    let rec = match sqlx::query!(
         r#"
         DELETE FROM perms
         WHERE guild_id = $1
         RETURNING guild_id"#,
         guild_id
     )
-    .fetch_one(pool)
-    .await?;
+    .fetch_optional(pool)
+    .await?
+    {
+        Some(row) => row,
+        None => return Ok(None),
+    };
 
-    Ok(rec.guild_id)
+    Ok(Some(rec.guild_id))
 }
