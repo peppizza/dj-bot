@@ -1,0 +1,106 @@
+{
+  "db": "PostgreSQL",
+  "652dc3e68149a8011ea3b2c84d338d968c60ac141a42f11f7295aca97e2039cc": {
+    "query": "\n        INSERT INTO perms (guild_id, user_id, perm_level) VALUES ($1, $2, $3)\n        ON CONFLICT (guild_id, user_id)\n        DO UPDATE SET perm_level = $3\n        RETURNING perm_level\n        ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "perm_level",
+          "type_info": "Int2"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Int2"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "98572ef3d2044f313396a3da83ae4292ba661697fecb788a19371b102cd9b9ca": {
+    "query": "\n        SELECT user_id, perm_level\n        FROM perms\n        WHERE guild_id = $1 AND perm_level = $2\n        ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "perm_level",
+          "type_info": "Int2"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int2"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
+  "ae04cdd7f14dc808786304fb9d170bd927b7e9f4a73eabd600b87f434a793173": {
+    "query": "\n        DELETE FROM perms\n        WHERE guild_id = $1\n        RETURNING guild_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "b9aec095b457702337ef3a8b7690f77f21dcc5856d3e7026f461d9cff1bd2610": {
+    "query": "\n        SELECT perm_level\n        FROM perms\n        WHERE guild_id = $1 AND user_id = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "perm_level",
+          "type_info": "Int2"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "e8690a52aa19a0d078255fb2ef82346a2a93e2a7afa6812f05f462a81375b179": {
+    "query": "\n        DELETE FROM perms\n        WHERE user_id = $1 AND guild_id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  }
+}
