@@ -98,7 +98,7 @@ async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> anyhow::Result<()> {
     dotenv::dotenv()?;
 
     let subscriber = FmtSubscriber::builder()
