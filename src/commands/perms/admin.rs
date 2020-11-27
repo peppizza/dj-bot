@@ -10,11 +10,11 @@ use serenity::{
 };
 
 use crate::{
-    db::{get_all_users_with_perm, get_user_perms, set_user_perms, UserPerm},
+    db::{delete_user, get_all_users_with_perm, get_user_perms, set_user_perms, UserPerm},
     state::PoolContainer,
 };
 
-use super::util::args_to_user;
+use super::util::{args_to_user, INSUFFICIENT_PERMISSIONS_MESSAGE};
 
 #[check]
 #[name = "Admin"]
@@ -40,10 +40,10 @@ async fn admin_check(
             if let UserPerm::Admin = perm_level {
                 CheckResult::Success
             } else {
-                CheckResult::new_user("You have insufficient permissions to run this command")
+                CheckResult::new_user(INSUFFICIENT_PERMISSIONS_MESSAGE)
             }
         } else {
-            CheckResult::new_user("You have insufficient permissions to run this command")
+            CheckResult::new_user(INSUFFICIENT_PERMISSIONS_MESSAGE)
         }
     }
 }
@@ -107,19 +107,10 @@ async fn del(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let guild_id = msg.guild_id.unwrap();
 
-    let user_perm = set_user_perms(
-        pool,
-        guild_id.into(),
-        user.id.try_into().unwrap(),
-        UserPerm::User,
-    )
-    .await?;
+    delete_user(pool, guild_id.into(), user.id.try_into().unwrap()).await?;
 
     msg.channel_id
-        .say(
-            ctx,
-            format!("Set {}'s permission to {:?}", user.mention(), user_perm),
-        )
+        .say(ctx, format!("Set {}'s permission to User", user.mention()))
         .await?;
 
     Ok(())

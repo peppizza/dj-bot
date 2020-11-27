@@ -6,6 +6,9 @@ mod util {
         framework::standard::Args, model::prelude::*, prelude::*, utils::parse_mention,
     };
 
+    pub const INSUFFICIENT_PERMISSIONS_MESSAGE: &str =
+        "You have insufficient permissions to run this command";
+
     pub async fn args_to_user(
         ctx: &Context,
         msg: &Message,

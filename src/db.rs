@@ -11,8 +11,8 @@ pub enum UserPerm {
 impl From<i16> for UserPerm {
     fn from(i: i16) -> Self {
         match i {
-            0 => Self::BlackListed,
-            1 => Self::User,
+            0 => Self::User,
+            1 => Self::BlackListed,
             2 => Self::DJ,
             3 => Self::Admin,
             _ => panic!("Can only be 0-3"),
@@ -23,11 +23,23 @@ impl From<i16> for UserPerm {
 impl Into<i16> for UserPerm {
     fn into(self) -> i16 {
         match self {
-            Self::BlackListed => 0,
-            Self::User => 1,
+            Self::User => 0,
+            Self::BlackListed => 1,
             Self::DJ => 2,
             Self::Admin => 3,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::UserPerm;
+
+    #[test]
+    fn test_ord() {
+        assert!(UserPerm::Admin > UserPerm::DJ);
+        assert!(UserPerm::DJ > UserPerm::User);
+        assert!(UserPerm::User > UserPerm::BlackListed);
     }
 }
 
@@ -108,19 +120,18 @@ pub async fn get_all_users_with_perm(
     Ok(rec)
 }
 
-pub async fn delete_user(pool: &PgPool, guild_id: i64, user_id: i64) -> anyhow::Result<i64> {
-    let rec = sqlx::query!(
+pub async fn delete_user(pool: &PgPool, guild_id: i64, user_id: i64) -> anyhow::Result<()> {
+    sqlx::query!(
         r#"
         DELETE FROM perms
-        WHERE user_id = $1 AND guild_id = $2
-        RETURNING user_id"#,
+        WHERE user_id = $1 AND guild_id = $2"#,
         user_id,
         guild_id
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
-    Ok(rec.user_id)
+    Ok(())
 }
 
 pub async fn delete_guild(pool: &PgPool, guild_id: i64) -> anyhow::Result<Option<i64>> {
