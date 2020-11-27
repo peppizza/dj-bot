@@ -1,18 +1,10 @@
-use serenity::{
-    async_trait,
-    client::bridge::gateway::ShardManager,
-    model::{
-        event::ResumedEvent,
-        id::GuildId,
-        id::UserId,
-        prelude::{Activity, Ready},
-    },
-    prelude::*,
-};
+use serenity::{async_trait, client::bridge::gateway::ShardManager, model::prelude::*, prelude::*};
 use songbird::input::Metadata;
 use sqlx::{Pool, Postgres};
 use std::{collections::HashMap, sync::Arc};
-use tracing::info;
+use tracing::{error, info};
+
+use crate::db::delete_guild;
 
 pub struct Handler;
 
@@ -22,13 +14,21 @@ impl EventHandler for Handler {
         info!("Connected as {}", ready.user.name);
     }
 
-    async fn cache_ready(&self, ctx: Context, guilds: Vec<GuildId>) {
-        ctx.set_activity(Activity::playing(&format!("with {} guilds", guilds.len())))
-            .await;
-    }
-
     async fn resume(&self, _: Context, _: ResumedEvent) {
         info!("Resumed");
+    }
+
+    async fn guild_delete(&self, ctx: Context, incomplete: GuildUnavailable, _: Option<Guild>) {
+        if !incomplete.unavailable {
+            info!("Removed from guild: {}", incomplete.id);
+            let data = ctx.data.read().await;
+            let pool = data.get::<PoolContainer>().unwrap();
+
+            match delete_guild(pool, incomplete.id.into()).await {
+                Ok(guild_id) => info!("Removed db entries for {}", guild_id),
+                Err(why) => error!("Could not remove db entries: {:?}", why),
+            };
+        }
     }
 }
 
