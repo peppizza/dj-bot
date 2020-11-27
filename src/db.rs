@@ -1,11 +1,11 @@
 use sqlx::postgres::PgPool;
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum UserPerm {
-    Admin,
-    DJ,
-    User,
     BlackListed,
+    User,
+    DJ,
+    Admin,
 }
 
 impl From<i16> for UserPerm {

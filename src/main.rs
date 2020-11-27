@@ -95,6 +95,8 @@ async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    assert_eq!(db::UserPerm::Admin > db::UserPerm::BlackListed, true);
+
     dotenv::dotenv()?;
 
     let subscriber = FmtSubscriber::builder()
