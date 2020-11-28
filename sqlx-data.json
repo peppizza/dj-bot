@@ -1,7 +1,7 @@
 {
   "db": "PostgreSQL",
-  "652dc3e68149a8011ea3b2c84d338d968c60ac141a42f11f7295aca97e2039cc": {
-    "query": "\n        INSERT INTO perms (guild_id, user_id, perm_level) VALUES ($1, $2, $3)\n        ON CONFLICT (guild_id, user_id)\n        DO UPDATE SET perm_level = $3\n        RETURNING perm_level\n        ",
+  "864b072ca652131559f8b94add9ea071cea4b3b8f94a44bc695abc9acea814df": {
+    "query": "\n        INSERT INTO perms (guild_id, user_id, perm_level) VALUES ($1, $2, $3)\n        ON CONFLICT (guild_id, user_id)\n        DO UPDATE SET perm_level = EXCLUDED.perm_level\n        RETURNING perm_level\n        ",
     "describe": {
       "columns": [
         {
@@ -90,17 +90,31 @@
       ]
     }
   },
-  "e8690a52aa19a0d078255fb2ef82346a2a93e2a7afa6812f05f462a81375b179": {
-    "query": "\n        DELETE FROM perms\n        WHERE user_id = $1 AND guild_id = $2",
+  "be33a6dc219e79107eee71059b23852f1314710e92c9fad968b1ebb92ba1eb9c": {
+    "query": "\n        DELETE FROM perms\n        WHERE user_id = $1 AND guild_id = $2\n        RETURNING guild_id, user_id",
     "describe": {
-      "columns": [],
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_id",
+          "type_info": "Int8"
+        }
+      ],
       "parameters": {
         "Left": [
           "Int8",
           "Int8"
         ]
       },
-      "nullable": []
+      "nullable": [
+        false,
+        false
+      ]
     }
   }
 }
