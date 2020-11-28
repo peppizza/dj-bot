@@ -78,7 +78,7 @@ pub async fn set_user_perms(
         r#"
         INSERT INTO perms (guild_id, user_id, perm_level) VALUES ($1, $2, $3)
         ON CONFLICT (guild_id, user_id)
-        DO UPDATE SET perm_level = $3
+        DO UPDATE SET perm_level = EXCLUDED.perm_level
         RETURNING perm_level
         "#,
         guild_id,
