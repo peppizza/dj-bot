@@ -10,12 +10,10 @@ pub mod util {
     };
 
     use crate::{
+        consts::INSUFFICIENT_PERMISSIONS_MESSAGE,
         db::{get_user_perms, UserPerm},
         state::PoolContainer,
     };
-
-    pub const INSUFFICIENT_PERMISSIONS_MESSAGE: &str =
-        "You have insufficient permissions to run this command";
 
     pub async fn args_to_user(
         ctx: &Context,

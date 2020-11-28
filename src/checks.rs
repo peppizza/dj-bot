@@ -7,7 +7,7 @@ use serenity::{
 };
 
 use crate::{
-    commands::perms::util::INSUFFICIENT_PERMISSIONS_MESSAGE,
+    consts::INSUFFICIENT_PERMISSIONS_MESSAGE,
     db::{get_user_perms, UserPerm},
     state::{PoolContainer, SongMetadataContainer},
 };

@@ -1,5 +1,6 @@
 mod checks;
 mod commands;
+mod consts;
 mod db;
 mod state;
 
