@@ -120,18 +120,34 @@ pub async fn get_all_users_with_perm(
     Ok(rec)
 }
 
-pub async fn delete_user(pool: &PgPool, guild_id: i64, user_id: i64) -> anyhow::Result<()> {
-    sqlx::query!(
+#[derive(Debug)]
+pub struct GuildIdUserId {
+    pub guild_id: i64,
+    pub user_id: i64,
+}
+
+pub async fn delete_user(
+    pool: &PgPool,
+    guild_id: i64,
+    user_id: i64,
+) -> anyhow::Result<Option<GuildIdUserId>> {
+    let rec = match sqlx::query_as!(
+        GuildIdUserId,
         r#"
         DELETE FROM perms
-        WHERE user_id = $1 AND guild_id = $2"#,
+        WHERE user_id = $1 AND guild_id = $2
+        RETURNING guild_id, user_id"#,
         user_id,
         guild_id
     )
-    .execute(pool)
-    .await?;
+    .fetch_optional(pool)
+    .await?
+    {
+        Some(row) => row,
+        None => return Ok(None),
+    };
 
-    Ok(())
+    Ok(Some(rec))
 }
 
 pub async fn delete_guild(pool: &PgPool, guild_id: i64) -> anyhow::Result<Option<i64>> {

@@ -42,12 +42,22 @@ impl EventHandler for Handler {
         ctx: Context,
         guild_id: GuildId,
         user: User,
-        _member_data_if_available: Option<Member>,
+        _: Option<Member>,
     ) {
         let data = ctx.data.read().await;
         let pool = data.get::<PoolContainer>().unwrap();
-        if let Err(e) = delete_user(pool, guild_id.into(), user.id.into()).await {
-            error!("Could not remove db entries: {:?}", e);
+        match delete_user(pool, guild_id.into(), user.id.into()).await {
+            Ok(guild_and_user_id) => {
+                if let Some(guild_and_user_id) = guild_and_user_id {
+                    info!("Removed db entry: {:?}", guild_and_user_id)
+                } else {
+                    info!(
+                        "There was no entry for user: {}, guild: {}",
+                        user.id, guild_id
+                    )
+                }
+            }
+            Err(e) => error!("Could not remove db entires: {:?}", e),
         }
     }
 }
