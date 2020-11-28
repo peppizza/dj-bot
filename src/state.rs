@@ -4,7 +4,7 @@ use sqlx::PgPool;
 use std::{collections::HashMap, sync::Arc};
 use tracing::{error, info};
 
-use crate::db::delete_guild;
+use crate::db::{delete_guild, delete_user};
 
 pub struct Handler;
 
@@ -34,6 +34,20 @@ impl EventHandler for Handler {
                 }
                 Err(why) => error!("Could not remove db entries: {:?}", why),
             };
+        }
+    }
+
+    async fn guild_member_removal(
+        &self,
+        ctx: Context,
+        guild_id: GuildId,
+        user: User,
+        _member_data_if_available: Option<Member>,
+    ) {
+        let data = ctx.data.read().await;
+        let pool = data.get::<PoolContainer>().unwrap();
+        if let Err(e) = delete_user(pool, guild_id.into(), user.id.into()).await {
+            error!("Could not remove db entries: {:?}", e);
         }
     }
 }

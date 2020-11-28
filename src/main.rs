@@ -138,7 +138,8 @@ async fn main() -> anyhow::Result<()> {
         .intents(
             GatewayIntents::GUILDS
                 | GatewayIntents::GUILD_MESSAGES
-                | GatewayIntents::GUILD_VOICE_STATES,
+                | GatewayIntents::GUILD_VOICE_STATES
+                | GatewayIntents::GUILD_MEMBERS,
         )
         .await?;
 
