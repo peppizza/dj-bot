@@ -57,7 +57,7 @@ impl EventHandler for Handler {
                     )
                 }
             }
-            Err(e) => error!("Could not remove db entires: {:?}", e),
+            Err(e) => error!("Could not remove db entries: {:?}", e),
         }
     }
 }
