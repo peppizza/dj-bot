@@ -168,7 +168,6 @@ async fn list_users_with_perm(
 
 #[command]
 #[only_in(guilds)]
-#[usage = "~perms set <user mention> <perm level>"]
 #[checks(Perms)]
 async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let user = match args_to_user(ctx, msg, &mut args).await? {
