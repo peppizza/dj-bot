@@ -21,6 +21,7 @@ async fn restart(ctx: &Context, msg: &Message) -> CommandResult {
         let queue = handler.queue();
 
         if let Some(track_handle) = queue.current() {
+            msg.channel_id.say(ctx, "Restarting track...").await?;
             track_handle.seek_time(Duration::from_secs(0))?;
         } else {
             msg.reply(ctx, "Nothing playing").await?;
