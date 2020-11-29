@@ -1,6 +1,6 @@
 use sqlx::postgres::PgPool;
 
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
 pub enum UserPerm {
     Blacklisted,
     User,
