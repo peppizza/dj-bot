@@ -83,7 +83,7 @@ async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
             Reason::User(reason) => {
                 let _ = msg.reply(ctx, reason).await;
             }
-            _ => return,
+            _ => {}
         },
         DispatchError::Ratelimited(duration) => {
             let _ = msg
