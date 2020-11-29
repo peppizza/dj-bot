@@ -96,6 +96,27 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         let is_in_channel = manager.get(guild_id);
 
         if let Some(handler_lock) = is_in_channel {
+            let author_channel_id = guild
+                .voice_states
+                .get(&msg.author.id)
+                .and_then(|voice_state| voice_state.channel_id);
+
+            let bot_channel_id = guild
+                .voice_states
+                .get(&ctx.cache.current_user_id().await)
+                .and_then(|voice_state| voice_state.channel_id);
+
+            if let Some(author_channel_id) = author_channel_id {
+                if let Some(bot_channel_id) = bot_channel_id {
+                    if author_channel_id != bot_channel_id {
+                        msg.channel_id
+                            .say(ctx, "Already in a different voice channel")
+                            .await?;
+                        return Ok(());
+                    }
+                }
+            }
+
             handler_lock
         } else {
             let channel_id = guild
