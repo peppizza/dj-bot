@@ -30,10 +30,10 @@ async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                         .say(ctx, format!("The current volume is {}", current_volume))
                         .await?;
                 } else {
-                    msg.reply(ctx, "Nothing playing").await?;
+                    msg.reply_ping(ctx, "Nothing playing").await?;
                 }
             } else {
-                msg.reply(ctx, "Not in a voice channel").await?;
+                msg.reply_ping(ctx, "Not in a voice channel").await?;
             }
 
             return Ok(());
@@ -41,7 +41,7 @@ async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     };
 
     if new_volume < 0 || new_volume > 100 {
-        msg.reply(ctx, "Please select a value from 0 to 100")
+        msg.reply_ping(ctx, "Please select a value from 0 to 100")
             .await?;
         return Ok(());
     }
@@ -57,10 +57,10 @@ async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         if let Some(handle) = queue.current() {
             handle.set_volume(new_volume)?;
         } else {
-            msg.reply(ctx, "Nothing playing").await?;
+            msg.reply_ping(ctx, "Nothing playing").await?;
         }
     } else {
-        msg.reply(ctx, "Not in a voice channel").await?;
+        msg.reply_ping(ctx, "Not in a voice channel").await?;
     }
 
     Ok(())

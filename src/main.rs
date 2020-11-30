@@ -81,7 +81,7 @@ async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
         DispatchError::CheckFailed(_, reason) => match reason {
             Reason::Log(log) => info!("{:?}", log),
             Reason::User(reason) => {
-                let _ = msg.reply(ctx, reason).await;
+                let _ = msg.reply_ping(ctx, reason).await;
             }
             _ => {}
         },

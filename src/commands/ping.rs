@@ -14,7 +14,7 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     let shard_manager = match data.get::<ShardManagerContainer>() {
         Some(v) => v,
         None => {
-            msg.reply(ctx, "There was a problem getting the shard manager")
+            msg.reply_ping(ctx, "There was a problem getting the shard manager")
                 .await?;
 
             return Ok(());
@@ -27,7 +27,7 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     let runner = match runners.get(&ShardId(ctx.shard_id)) {
         Some(runner) => runner,
         None => {
-            msg.reply(ctx, "No shard found").await?;
+            msg.reply_ping(ctx, "No shard found").await?;
 
             return Ok(());
         }

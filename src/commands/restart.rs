@@ -24,10 +24,10 @@ async fn restart(ctx: &Context, msg: &Message) -> CommandResult {
             msg.channel_id.say(ctx, "Restarting track...").await?;
             track_handle.seek_time(Duration::from_secs(0))?;
         } else {
-            msg.reply(ctx, "Nothing playing").await?;
+            msg.reply_ping(ctx, "Nothing playing").await?;
         }
     } else {
-        msg.reply(ctx, "Not in a voice channel").await?;
+        msg.reply_ping(ctx, "Not in a voice channel").await?;
     }
 
     Ok(())

@@ -35,7 +35,7 @@ async fn loop_command(ctx: &Context, msg: &Message) -> CommandResult {
             }
         }
     } else {
-        msg.reply(ctx, "Not in a voice channel to loop in").await?;
+        msg.reply_ping(ctx, "Not in a voice channel to loop in").await?;
     }
 
     Ok(())

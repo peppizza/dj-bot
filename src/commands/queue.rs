@@ -69,7 +69,7 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
 
         msg.channel_id.say(ctx, response).await?;
     } else {
-        msg.reply(ctx, "Nothing playing").await?;
+        msg.reply_ping(ctx, "Nothing playing").await?;
     }
 
     Ok(())

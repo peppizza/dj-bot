@@ -27,7 +27,7 @@ async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
             }
             queue.skip()?;
         } else {
-            msg.reply(ctx, "No song currently playing").await?;
+            msg.reply_ping(ctx, "No song currently playing").await?;
             return Ok(());
         }
 

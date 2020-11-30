@@ -24,7 +24,7 @@ async fn args_to_user(
     let mentioned_user = match args.single_quoted::<String>() {
         Ok(user) => user,
         Err(_) => {
-            msg.reply(
+            msg.reply_ping(
                 ctx,
                 "Please mention the user you would like to edit the permissions of",
             )
@@ -36,7 +36,7 @@ async fn args_to_user(
     let mentioned_user = match parse_mention(mentioned_user) {
         Some(id) => id,
         None => {
-            msg.reply(ctx, "Not a valid mention").await?;
+            msg.reply_ping(ctx, "Not a valid mention").await?;
             return Ok(None);
         }
     };
@@ -44,7 +44,7 @@ async fn args_to_user(
     let user = match UserId(mentioned_user).to_user(ctx).await {
         Ok(user) => user,
         Err(_) => {
-            msg.reply(ctx, "Not a valid user").await?;
+            msg.reply_ping(ctx, "Not a valid user").await?;
             return Ok(None);
         }
     };
@@ -89,7 +89,7 @@ async fn perms_check(
 #[checks(Perms)]
 #[sub_commands(list, set)]
 async fn perms(ctx: &Context, msg: &Message) -> CommandResult {
-    msg.reply(ctx, "Available commands are: `perms set`, and `perms list`")
+    msg.reply_ping(ctx, "Available commands are: `perms set`, and `perms list`")
         .await?;
     Ok(())
 }
@@ -101,7 +101,7 @@ async fn list(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let level = match args.single_quoted::<String>() {
         Ok(level) => level,
         Err(_) => {
-            msg.reply(ctx, "Please provide a permission you would like to list the members of, availible options are: `admin`, `dj`, and `blacklist`").await?;
+            msg.reply_ping(ctx, "Please provide a permission you would like to list the members of, availible options are: `admin`, `dj`, and `blacklist`").await?;
             return Ok(());
         }
     };
@@ -117,7 +117,7 @@ async fn list(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             list_users_with_perm(ctx, msg, UserPerm::Blacklisted).await?;
         }
         _ => {
-            msg.reply(
+            msg.reply_ping(
                 ctx,
                 "Not a valid permission, options are: `admin`, `dj`, and `blacklist`",
             )
@@ -178,7 +178,7 @@ async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let perm_level = match args.single_quoted::<String>() {
         Ok(level) => level,
         Err(_) => {
-            msg.reply(ctx, "Please provide a permission you would like to set the member to, availible options are: `admin`, `dj`, `user`, and `blacklist`").await?;
+            msg.reply_ping(ctx, "Please provide a permission you would like to set the member to, availible options are: `admin`, `dj`, `user`, and `blacklist`").await?;
             return Ok(());
         }
     };
@@ -206,7 +206,7 @@ async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             set_user_perm_from_command(ctx, msg, UserPerm::Blacklisted, user).await?;
         }
         _ => {
-            msg.reply(
+            msg.reply_ping(
                 ctx,
                 "Not a valid permission, options are `admin`, `dj`, `user`, and `blacklist`",
             )

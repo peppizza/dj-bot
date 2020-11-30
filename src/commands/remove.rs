@@ -34,7 +34,7 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
                 msg.channel_id.say(ctx, "Skipped the song").await?;
             } else if index > queue.len() {
-                msg.reply(ctx, format!("There is no song at index: {}", index))
+                msg.reply_ping(ctx, format!("There is no song at index: {}", index))
                     .await?;
                 return Ok(());
             } else {

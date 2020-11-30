@@ -17,7 +17,7 @@ async fn mute(ctx: &Context, msg: &Message) -> CommandResult {
     let handler_lock = match manager.get(guild_id) {
         Some(handler) => handler,
         None => {
-            msg.reply(ctx, "Not in a voice channel").await?;
+            msg.reply_ping(ctx, "Not in a voice channel").await?;
 
             return Ok(());
         }
