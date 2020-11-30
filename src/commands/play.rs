@@ -52,9 +52,6 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 .get(&ctx.cache.current_user_id().await)
                 .and_then(|voice_state| voice_state.channel_id);
 
-            msg.reply(ctx, format!("{:?}:{:?}", author_channel_id, bot_channel_id))
-                .await?;
-
             if author_channel_id != bot_channel_id {
                 msg.channel_id
                     .say(ctx, "Already in a different voice channel")
