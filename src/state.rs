@@ -1,12 +1,21 @@
 use serenity::{async_trait, client::bridge::gateway::ShardManager, model::prelude::*, prelude::*};
 use songbird::input::Metadata;
 use sqlx::PgPool;
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+    time::Duration,
+};
 use tracing::{error, info};
 
 use crate::db::{delete_guild, delete_user};
 
-pub struct Handler;
+pub struct Handler {
+    pub is_loop_running: AtomicBool,
+}
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -58,6 +67,68 @@ impl EventHandler for Handler {
                 }
             }
             Err(e) => error!("Could not remove db entries: {:?}", e),
+        }
+    }
+
+    async fn cache_ready(&self, ctx: Context, _guilds: Vec<GuildId>) {
+        println!("Cache built");
+
+        let ctx = Arc::new(ctx);
+
+        if !self.is_loop_running.load(Ordering::Relaxed) {
+            let ctx1 = Arc::clone(&ctx);
+
+            tokio::spawn(async move {
+                let ctx = ctx1.clone();
+
+                loop {
+                    println!("running loop");
+
+                    let guilds = ctx.cache.guilds().await;
+
+                    for guild_id in guilds {
+                        let guild = match guild_id.to_guild_cached(&ctx).await {
+                            Some(guild) => guild,
+                            None => continue,
+                        };
+
+                        let bot_voice_channel = match guild
+                            .voice_states
+                            .get(&ctx.cache.current_user_id().await)
+                            .map(|state| state.channel_id)
+                        {
+                            Some(c) => c,
+                            None => continue,
+                        };
+
+                        let bot_voice_channel = match bot_voice_channel {
+                            Some(c) => c,
+                            None => continue,
+                        };
+
+                        let count_of_members = guild
+                            .voice_states
+                            .values()
+                            .filter(|state| match state.channel_id {
+                                Some(c) => c == bot_voice_channel,
+                                None => false,
+                            })
+                            .count();
+
+                        println!("{}", count_of_members);
+
+                        if count_of_members == 1 {
+                            let manager = songbird::get(&ctx).await.unwrap();
+
+                            let _ = manager.remove(guild_id).await;
+                        }
+                    }
+
+                    tokio::time::delay_for(Duration::from_secs(5 * 60)).await;
+                }
+            });
+
+            self.is_loop_running.swap(true, Ordering::Relaxed);
         }
     }
 }
