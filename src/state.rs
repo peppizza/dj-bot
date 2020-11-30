@@ -9,7 +9,7 @@ use std::{
     },
     time::Duration,
 };
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 use crate::db::{delete_guild, delete_user};
 
@@ -71,7 +71,7 @@ impl EventHandler for Handler {
     }
 
     async fn cache_ready(&self, ctx: Context, _guilds: Vec<GuildId>) {
-        println!("Cache built");
+        debug!("Cache built");
 
         let ctx = Arc::new(ctx);
 
@@ -82,7 +82,7 @@ impl EventHandler for Handler {
                 let ctx = ctx1.clone();
 
                 loop {
-                    println!("running loop");
+                    debug!("running loop");
 
                     let guilds = ctx.cache.guilds().await;
 
@@ -115,7 +115,7 @@ impl EventHandler for Handler {
                             })
                             .count();
 
-                        println!("{}", count_of_members);
+                        debug!("{}", count_of_members);
 
                         if count_of_members == 1 {
                             let manager = songbird::get(&ctx).await.unwrap();
