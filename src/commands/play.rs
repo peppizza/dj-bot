@@ -34,6 +34,58 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         }
     };
 
+    let guild = msg.guild(ctx).await.unwrap();
+    let guild_id = guild.id;
+
+    let manager = songbird::get(ctx).await.unwrap().clone();
+    let handler_lock = {
+        let is_in_channel = manager.get(guild_id);
+
+        if let Some(handler_lock) = is_in_channel {
+            let author_channel_id = guild
+                .voice_states
+                .get(&msg.author.id)
+                .and_then(|voice_state| voice_state.channel_id);
+
+            let bot_channel_id = guild
+                .voice_states
+                .get(&ctx.cache.current_user_id().await)
+                .and_then(|voice_state| voice_state.channel_id);
+
+            msg.reply(ctx, format!("{:?}:{:?}", author_channel_id, bot_channel_id))
+                .await?;
+
+            if author_channel_id != bot_channel_id {
+                msg.channel_id
+                    .say(ctx, "Already in a different voice channel")
+                    .await?;
+                return Ok(());
+            }
+
+            handler_lock
+        } else {
+            let channel_id = guild
+                .voice_states
+                .get(&msg.author.id)
+                .and_then(|voice_state| voice_state.channel_id);
+
+            let connect_to = match channel_id {
+                Some(c) => c,
+                None => {
+                    msg.channel_id
+                        .say(ctx, "Not in a channel to join into")
+                        .await?;
+
+                    return Ok(());
+                }
+            };
+
+            let (handler_lock, _) = manager.join(guild_id, connect_to).await;
+
+            handler_lock
+        }
+    };
+
     let (source, mut reply_msg) = if url.starts_with("http") {
         let mut reply_msg = msg
             .channel_id
@@ -87,59 +139,6 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let source = songbird::input::Input::from(source);
     let metadata = source.metadata.clone();
-
-    let guild = msg.guild(ctx).await.unwrap();
-    let guild_id = guild.id;
-
-    let manager = songbird::get(ctx).await.unwrap().clone();
-    let handler_lock = {
-        let is_in_channel = manager.get(guild_id);
-
-        if let Some(handler_lock) = is_in_channel {
-            let author_channel_id = guild
-                .voice_states
-                .get(&msg.author.id)
-                .and_then(|voice_state| voice_state.channel_id);
-
-            let bot_channel_id = guild
-                .voice_states
-                .get(&ctx.cache.current_user_id().await)
-                .and_then(|voice_state| voice_state.channel_id);
-
-            if let Some(author_channel_id) = author_channel_id {
-                if let Some(bot_channel_id) = bot_channel_id {
-                    if author_channel_id != bot_channel_id {
-                        msg.channel_id
-                            .say(ctx, "Already in a different voice channel")
-                            .await?;
-                        return Ok(());
-                    }
-                }
-            }
-
-            handler_lock
-        } else {
-            let channel_id = guild
-                .voice_states
-                .get(&msg.author.id)
-                .and_then(|voice_state| voice_state.channel_id);
-
-            let connect_to = match channel_id {
-                Some(c) => c,
-                None => {
-                    msg.channel_id
-                        .say(ctx, "Not in a channel to join into")
-                        .await?;
-
-                    return Ok(());
-                }
-            };
-
-            let (handler_lock, _) = manager.join(guild_id, connect_to).await;
-
-            handler_lock
-        }
-    };
 
     let mut handler = handler_lock.lock().await;
 
