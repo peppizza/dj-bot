@@ -29,6 +29,13 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
 
     let manager = songbird::get(ctx).await.unwrap().clone();
 
+    if manager.get(guild_id).is_some() {
+        msg.channel_id
+            .say(ctx, "Already in a voice channel")
+            .await?;
+        return Ok(());
+    }
+
     let (_, success) = manager.join(guild_id, connect_to).await;
 
     if success.is_ok() {
