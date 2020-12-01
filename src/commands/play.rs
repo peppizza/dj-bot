@@ -4,6 +4,7 @@ use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
     model::prelude::*,
     prelude::*,
+    utils::Color,
 };
 
 use songbird::input::Restartable;
@@ -192,6 +193,8 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
                     f
                 });
+
+                e.color(Color::DARK_GREEN);
 
                 e
             })
