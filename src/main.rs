@@ -27,7 +27,7 @@ use tracing::{info, warn};
 use std::{
     collections::{HashMap, HashSet},
     env,
-    sync::{atomic::AtomicBool, Arc},
+    sync::Arc,
 };
 
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
@@ -134,9 +134,7 @@ async fn main() -> anyhow::Result<()> {
 
     let mut client = Client::builder(&token)
         .framework(framework)
-        .event_handler(Handler {
-            is_loop_running: AtomicBool::new(false),
-        })
+        .event_handler(Handler::new())
         .register_songbird()
         .intents(
             GatewayIntents::GUILDS

@@ -14,7 +14,15 @@ use tracing::{debug, error, info};
 use crate::db::{delete_guild, delete_user};
 
 pub struct Handler {
-    pub is_loop_running: AtomicBool,
+    is_loop_running: AtomicBool,
+}
+
+impl Handler {
+    pub fn new() -> Self {
+        Self {
+            is_loop_running: AtomicBool::new(false),
+        }
+    }
 }
 
 #[async_trait]
