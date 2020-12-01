@@ -186,6 +186,13 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     ("Length", format!("{}:{}", minutes, seconds), true),
                 ]);
 
+                e.footer(|f| {
+                    f.icon_url("https://avatars0.githubusercontent.com/u/35662205?s=460&u=a154620c136da5ad4acc9c473864cc6349a4e874&v=4");
+                    f.text("If you like my work consider supporting me on ko-fi: https://ko-fi.com/peppizza");
+
+                    f
+                });
+
                 e
             })
         })
