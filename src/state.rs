@@ -90,7 +90,7 @@ impl EventHandler for Handler {
                 let ctx = ctx1.clone();
 
                 loop {
-                    debug!("running loop");
+                    debug!("running empty channel loop");
 
                     let guilds = ctx.cache.guilds().await;
 
@@ -133,6 +133,24 @@ impl EventHandler for Handler {
                     }
 
                     tokio::time::delay_for(Duration::from_secs(5 * 60)).await;
+                }
+            });
+
+            let ctx2 = Arc::clone(&ctx);
+
+            tokio::spawn(async move {
+                let ctx = Arc::clone(&ctx2);
+
+                loop {
+                    debug!("Running presence update loop");
+
+                    ctx.set_activity(Activity::playing(&format!(
+                        "with {} guilds",
+                        ctx.cache.guild_count().await
+                    )))
+                    .await;
+
+                    tokio::time::delay_for(Duration::from_secs(30 * 60)).await;
                 }
             });
 
