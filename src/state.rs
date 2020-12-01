@@ -145,7 +145,7 @@ impl EventHandler for Handler {
                     debug!("Running presence update loop");
 
                     ctx.set_activity(Activity::listening(&format!(
-                        "{} guilds",
+                        "{} servers",
                         ctx.cache.guild_count().await
                     )))
                     .await;
