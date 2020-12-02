@@ -154,7 +154,7 @@ impl EventHandler for Handler {
                 }
             });
 
-            self.is_loop_running.swap(true, Ordering::Relaxed);
+            self.is_loop_running.store(true, Ordering::Relaxed);
         }
     }
 }
