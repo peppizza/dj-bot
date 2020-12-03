@@ -174,7 +174,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
                 e.footer(|f| {
                     f.icon_url("https://avatars0.githubusercontent.com/u/35662205?s=460&u=a154620c136da5ad4acc9c473864cc6349a4e874&v=4");
-                    f.text("If you like my work consider supporting me on ko-fi: https://ko-fi.com/peppizza");
+                    f.text("If you like my work consider donating, ~donate");
 
                     f
                 });
@@ -186,5 +186,15 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         })
         .await?;
 
+    Ok(())
+}
+
+#[command]
+#[only_in(guilds)]
+#[help_available(false)]
+async fn donate(ctx: &Context, msg: &Message) -> CommandResult {
+    msg.channel_id
+        .say(ctx, "https://ko-fi.com/peppizza")
+        .await?;
     Ok(())
 }

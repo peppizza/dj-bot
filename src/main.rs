@@ -59,7 +59,8 @@ use state::*;
     restart,
     queue,
     now_playing,
-    shuffle
+    shuffle,
+    donate
 )]
 struct General;
 
