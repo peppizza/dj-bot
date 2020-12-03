@@ -34,7 +34,8 @@ use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{
     db_testing::*, help::*, join::*, leave::*, loop_command::*, mute::*, now_playing::*, pause::*,
-    ping::*, play::*, queue::*, remove::*, restart::*, resume::*, skip::*, stop::*, volume::*,
+    ping::*, play::*, queue::*, remove::*, restart::*, resume::*, shuffle::*, skip::*, stop::*,
+    volume::*,
 };
 
 use commands::perms::*;
@@ -57,7 +58,8 @@ use state::*;
     resume,
     restart,
     queue,
-    now_playing
+    now_playing,
+    shuffle
 )]
 struct General;
 

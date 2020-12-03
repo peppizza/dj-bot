@@ -148,9 +148,9 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     reply_msg
         .edit(ctx, |m| {
             m.embed(|e| {
-                let title = metadata.title.unwrap();
-                let artist = metadata.artist.unwrap();
-                let length = metadata.duration.unwrap();
+                let title = metadata.title.unwrap_or_default();
+                let artist = metadata.artist.unwrap_or_default();
+                let length = metadata.duration.unwrap_or_default();
                 let mut seconds = (length.as_secs() % 60).to_string();
                 let minutes = (length.as_secs() / 60) % 60;
 

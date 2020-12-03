@@ -13,6 +13,7 @@ pub mod queue;
 pub mod remove;
 pub mod restart;
 pub mod resume;
+pub mod shuffle;
 pub mod skip;
 pub mod stop;
 pub mod volume;
