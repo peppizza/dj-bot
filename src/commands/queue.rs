@@ -49,14 +49,14 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
         metadata_list.remove(0);
 
         for (idx, metadata) in metadata_list.iter().enumerate() {
-            let track_length = metadata.duration.unwrap();
+            let track_length = metadata.duration.unwrap_or_default();
             let title = metadata.title.clone();
 
             let len_mm_ss = format_duration_to_mm_ss(track_length);
 
             response.push_bold(format!("[ {} ] ", len_mm_ss));
 
-            response.push(format!("{} ", title.unwrap()));
+            response.push(format!("{} ", title.unwrap_or_default()));
 
             if idx != queue.len() {
                 response.push_mono(format!("{}", idx + 1)).push("\n\n");
