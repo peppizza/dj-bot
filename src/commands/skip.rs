@@ -9,6 +9,7 @@ use crate::{checks::*, state::SongMetadataContainer};
 #[command]
 #[only_in(guilds)]
 #[checks(Player)]
+#[description = "Skips the currently playing track"]
 async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

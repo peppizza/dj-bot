@@ -8,6 +8,7 @@ use serenity::{
 use crate::ShardManagerContainer;
 
 #[command]
+#[description = "Shows the bots current latency"]
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
 

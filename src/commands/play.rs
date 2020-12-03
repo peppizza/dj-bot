@@ -20,6 +20,8 @@ use crate::{
 #[only_in(guilds)]
 #[aliases("p")]
 #[checks(Player)]
+#[description = "Adds a new song to the queue, can either be the name of a song, or a link to it"]
+#[usage = "<name or url of song> | p <name or url of song>"]
 async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let url = match args.remains() {
         Some(url) => url.to_string(),

@@ -50,7 +50,7 @@ mod util {
 
         let is_playing = matches!(track_info.playing, PlayMode::Play);
 
-        let track_len = metadata.duration.unwrap();
+        let track_len = metadata.duration.unwrap_or_default();
 
         let track_len_mm_ss = format_duration_to_mm_ss(track_len);
 
@@ -79,9 +79,9 @@ mod util {
         } else {
             response
                 .push_bold(format!("[ {} ]", track_len_mm_ss))
-                .push(format!("{} ", track_title.unwrap()));
+                .push(format!("{} ", track_title.unwrap_or_default()));
 
-            let place_in_queue = place_in_queue.unwrap();
+            let place_in_queue = place_in_queue.unwrap_or_default();
 
             if new_line {
                 response

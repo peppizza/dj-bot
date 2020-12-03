@@ -10,6 +10,7 @@ use crate::checks::*;
 #[command("loop")]
 #[only_in(guilds)]
 #[checks(Player)]
+#[description = "Enables/Disables a loop for the current track"]
 async fn loop_command(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
@@ -35,7 +36,8 @@ async fn loop_command(ctx: &Context, msg: &Message) -> CommandResult {
             }
         }
     } else {
-        msg.reply_ping(ctx, "Not in a voice channel to loop in").await?;
+        msg.reply_ping(ctx, "Not in a voice channel to loop in")
+            .await?;
     }
 
     Ok(())

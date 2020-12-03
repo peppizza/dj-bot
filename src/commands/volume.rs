@@ -10,6 +10,8 @@ use crate::checks::*;
 #[only_in(guilds)]
 #[aliases("vol")]
 #[checks(Player)]
+#[description = "Shows the current volume of the track, or sets the volume of the track if an argument is supplied"]
+#[usage = "to see the current volume | volume <number 0-100> to set the volume"]
 async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

@@ -11,6 +11,7 @@ use crate::checks::*;
 #[command]
 #[only_in(guilds)]
 #[checks(Player)]
+#[description = "Resumes a paused track"]
 async fn resume(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
