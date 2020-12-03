@@ -1,9 +1,9 @@
-use std::convert::TryInto;
+use std::{convert::TryInto, result::Result as StdResult};
 
 use serenity::{
     framework::standard::{
         macros::{check, command},
-        Args, CheckResult, CommandOptions, CommandResult,
+        Args, CommandOptions, CommandResult, Reason,
     },
     model::prelude::*,
     prelude::*,
@@ -59,12 +59,12 @@ async fn perms_check(
     msg: &Message,
     _: &mut Args,
     _: &CommandOptions,
-) -> CheckResult {
+) -> StdResult<(), Reason> {
     let guild = msg.guild(ctx).await.unwrap();
     let perms = guild.member_permissions(ctx, msg.author.id).await.unwrap();
 
     if perms.administrator() {
-        CheckResult::Success
+        Ok(())
     } else {
         let data = ctx.data.read().await;
         let pool = data.get::<PoolContainer>().unwrap();
@@ -74,12 +74,12 @@ async fn perms_check(
             .unwrap()
         {
             if let UserPerm::Admin = perm_level {
-                CheckResult::Success
+                Ok(())
             } else {
-                CheckResult::new_user(INSUFFICIENT_PERMISSIONS_MESSAGE)
+                Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()))
             }
         } else {
-            CheckResult::new_user(INSUFFICIENT_PERMISSIONS_MESSAGE)
+            Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()))
         }
     }
 }
