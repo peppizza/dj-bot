@@ -18,9 +18,7 @@ where
     T: LenAndSwap,
     R: rand::Rng,
 {
-    let mut i = values.len();
-    while i >= 2 {
-        i -= 1;
+    for i in (1..values.len()).rev() {
         values.swap(i, rng.gen_range(0, i + 1))
     }
 }
