@@ -21,7 +21,7 @@ async fn loop_command(ctx: &Context, msg: &Message) -> CommandResult {
         let queue = handler.queue();
 
         if let Some(handle) = queue.current() {
-            if let LoopState::Infinite = handle.get_info()?.await?.loops {
+            if let LoopState::Infinite = handle.get_info().await?.loops {
                 if let Err(why) = handle.disable_loop() {
                     tracing::error!("{:?}, {}", why, why);
                 }

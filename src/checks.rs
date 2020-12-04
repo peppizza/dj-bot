@@ -9,7 +9,7 @@ use serenity::{
 use crate::{
     consts::INSUFFICIENT_PERMISSIONS_MESSAGE,
     db::{get_user_perms, UserPerm},
-    state::{PoolContainer, SongMetadataContainer},
+    state::{PoolContainer, SongAuthorContainer},
 };
 
 #[check]
@@ -134,13 +134,11 @@ async fn allow_author_or_dj(ctx: &Context, msg: &Message) -> anyhow::Result<()> 
 
         if let Some(handle) = queue.current() {
             let data = ctx.data.read().await;
-            let metadata_container_lock = data.get::<SongMetadataContainer>().unwrap().clone();
-            let metadata_container = metadata_container_lock.read().await;
+            let author_container_lock = data.get::<SongAuthorContainer>().unwrap().clone();
+            let author_container = author_container_lock.read().await;
+            let author = author_container.get(&handle.uuid()).unwrap();
 
-            let metadata = metadata_container.get(&handle.uuid()).unwrap();
-            let author = metadata.author;
-
-            if msg.author.id == author {
+            if msg.author.id == *author {
                 Ok(())
             } else {
                 let pool = data.get::<PoolContainer>().unwrap();

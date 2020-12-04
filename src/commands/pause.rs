@@ -21,7 +21,7 @@ async fn pause(ctx: &Context, msg: &Message) -> CommandResult {
         let queue = handler.queue();
 
         if let Some(handle) = queue.current() {
-            match handle.get_info()?.await?.playing {
+            match handle.get_info().await?.playing {
                 PlayMode::Play => {
                     handle.pause()?;
                     msg.channel_id.say(ctx, "Paused").await?;

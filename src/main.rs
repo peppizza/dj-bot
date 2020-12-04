@@ -150,7 +150,7 @@ async fn main() -> anyhow::Result<()> {
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
-        data.insert::<SongMetadataContainer>(Arc::new(RwLock::new(HashMap::new())));
+        data.insert::<SongAuthorContainer>(Arc::new(RwLock::new(HashMap::new())));
         data.insert::<PoolContainer>(pool);
     }
 

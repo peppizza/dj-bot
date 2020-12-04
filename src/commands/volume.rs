@@ -25,7 +25,7 @@ async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 let queue = handler.queue();
 
                 if let Some(handle) = queue.current() {
-                    let mut current_volume = handle.get_info()?.await?.volume * 100f32;
+                    let mut current_volume = handle.get_info().await?.volume * 100f32;
                     current_volume = current_volume.round();
 
                     msg.channel_id

@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::{checks::*, state::SongMetadataContainer};
+use crate::checks::*;
 
 use super::util::formatted_song_listing;
 
@@ -23,20 +23,11 @@ async fn now_playing(ctx: &Context, msg: &Message) -> CommandResult {
         let handler = handler_lock.lock().await;
         let queue = handler.queue();
         if let Some(current_track) = queue.current() {
-            let data = ctx.data.read().await;
-            let metadata_container_lock = data.get::<SongMetadataContainer>().unwrap().clone();
-            let metadata_container = metadata_container_lock.read().await;
+            let metadata = current_track.metadata();
 
-            let current_track_metadata = metadata_container
-                .get(&current_track.uuid())
-                .unwrap()
-                .metadata
-                .clone();
-
-            let response =
-                formatted_song_listing(&current_track_metadata, &current_track, true, false, None)
-                    .await?
-                    .build();
+            let response = formatted_song_listing(metadata, &current_track, true, false, None)
+                .await?
+                .build();
 
             msg.channel_id.say(ctx, response).await?;
         } else {

@@ -5,7 +5,7 @@ use serenity::{
 };
 
 use super::util::{format_duration_to_mm_ss, formatted_song_listing};
-use crate::{checks::*, state::SongMetadataContainer};
+use crate::checks::*;
 
 #[command]
 #[only_in(guilds)]
@@ -20,9 +20,6 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
         let handler = handler_lock.lock().await;
         let queue = handler.queue();
         let current_queue = queue.current_queue();
-        let data = ctx.data.read().await;
-        let metadata_container_lock = data.get::<SongMetadataContainer>().unwrap().clone();
-        let metadata_container = metadata_container_lock.read().await;
 
         if queue.is_empty() {
             msg.channel_id.say(ctx, "The queue is empty").await?;
@@ -31,19 +28,15 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
 
         let mut metadata_list = Vec::new();
 
-        for handle in &current_queue {
-            let metadata = metadata_container
-                .get(&handle.uuid())
-                .unwrap()
-                .metadata
-                .clone();
+        for handle in current_queue {
+            let metadata = handle.metadata();
 
             metadata_list.push(metadata);
         }
 
         let current = queue.current().unwrap();
 
-        let metadata = &metadata_container.get(&current.uuid()).unwrap().metadata;
+        let metadata = current.metadata();
 
         let mut response = formatted_song_listing(metadata, &current, true, true, None).await?;
 

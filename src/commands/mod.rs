@@ -19,7 +19,7 @@ pub mod stop;
 pub mod volume;
 
 mod util {
-    use std::time::Duration;
+    use std::{sync::Arc, time::Duration};
 
     use serenity::utils::MessageBuilder;
 
@@ -40,13 +40,15 @@ mod util {
     }
 
     pub async fn formatted_song_listing(
-        metadata: &Metadata,
+        metadata: Arc<Metadata>,
         track: &TrackHandle,
         include_pos: bool,
         new_line: bool,
         place_in_queue: Option<usize>,
     ) -> Result<MessageBuilder, Box<dyn std::error::Error + Send + Sync>> {
-        let track_info = track.get_info()?.await?;
+        let metadata = metadata.clone();
+
+        let track_info = track.get_info().await?;
 
         let is_playing = matches!(track_info.playing, PlayMode::Play);
 

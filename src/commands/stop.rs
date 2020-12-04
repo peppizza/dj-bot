@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::{checks::*, state::SongMetadataContainer};
+use crate::{checks::*, state::SongAuthorContainer};
 
 #[command]
 #[only_in(guilds)]
@@ -23,11 +23,11 @@ async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
 
             if !current_queue.is_empty() {
                 let data = ctx.data.read().await;
-                let metadata_container_lock = data.get::<SongMetadataContainer>().unwrap().clone();
-                let mut metadata_container = metadata_container_lock.write().await;
+                let author_container_lock = data.get::<SongAuthorContainer>().unwrap().clone();
+                let mut author_container = author_container_lock.write().await;
 
                 for track in current_queue {
-                    metadata_container.remove(&track.uuid());
+                    author_container.remove(&track.uuid());
                 }
             }
 

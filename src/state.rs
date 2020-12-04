@@ -1,5 +1,4 @@
 use serenity::{async_trait, client::bridge::gateway::ShardManager, model::prelude::*, prelude::*};
-use songbird::input::Metadata;
 use sqlx::PgPool;
 use std::{
     collections::HashMap,
@@ -164,15 +163,10 @@ impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
 }
 
-pub struct SongMetadataContainer;
+pub struct SongAuthorContainer;
 
-pub struct MetadataWithAuthor {
-    pub metadata: Arc<Metadata>,
-    pub author: UserId,
-}
-
-impl TypeMapKey for SongMetadataContainer {
-    type Value = Arc<RwLock<HashMap<uuid::Uuid, MetadataWithAuthor>>>;
+impl TypeMapKey for SongAuthorContainer {
+    type Value = Arc<RwLock<HashMap<uuid::Uuid, UserId>>>;
 }
 
 pub struct PoolContainer;

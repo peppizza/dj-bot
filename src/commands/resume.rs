@@ -22,7 +22,7 @@ async fn resume(ctx: &Context, msg: &Message) -> CommandResult {
         let queue = handler.queue();
 
         if let Some(handle) = queue.current() {
-            match handle.get_info()?.await?.playing {
+            match handle.get_info().await?.playing {
                 PlayMode::Pause => {
                     handle.play()?;
                     msg.channel_id.say(ctx, "Resumed").await?;

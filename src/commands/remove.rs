@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::{checks::*, state::SongMetadataContainer};
+use crate::{checks::*, state::SongAuthorContainer};
 
 #[command]
 #[only_in(guilds)]
@@ -25,11 +25,10 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 {
                     let current = queue.current().unwrap();
                     let data = ctx.data.read().await;
-                    let metadata_container_lock =
-                        data.get::<SongMetadataContainer>().unwrap().clone();
-                    let mut metadata_container = metadata_container_lock.write().await;
+                    let author_container_lock = data.get::<SongAuthorContainer>().unwrap().clone();
+                    let mut author_container = author_container_lock.write().await;
 
-                    metadata_container.remove(&current.uuid());
+                    author_container.remove(&current.uuid());
                 }
 
                 queue.skip()?;
@@ -40,22 +39,15 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                     .await?;
                 return Ok(());
             } else {
-                let title = {
-                    let handle = queue.dequeue(index).unwrap();
-                    let uuid = handle.uuid();
-                    handle.stop()?;
-                    let data = ctx.data.read().await;
-                    let metadata_container_lock =
-                        data.get::<SongMetadataContainer>().unwrap().clone();
-                    let mut metadata_container = metadata_container_lock.write().await;
-
-                    metadata_container.remove(&uuid)
-                }
-                .unwrap()
-                .metadata
-                .title
-                .clone()
-                .unwrap();
+                let track = queue.dequeue(index).unwrap();
+                let metadata = track.metadata();
+                let title = metadata.title.clone().unwrap_or_default();
+                let uuid = track.uuid();
+                let data = ctx.data.read().await;
+                let author_container_lock = data.get::<SongAuthorContainer>().unwrap().clone();
+                let mut author_container = author_container_lock.write().await;
+                author_container.remove(&uuid);
+                track.stop()?;
 
                 msg.channel_id
                     .say(ctx, format!("Removed song: `{}`", title))
