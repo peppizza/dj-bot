@@ -36,7 +36,7 @@ pub async fn player_check(
             .get(&ctx.cache.current_user_id().await)
             .and_then(|voice_state| voice_state.channel_id);
 
-        if author_channel_id != bot_channel_id {
+        if bot_channel_id.is_some() && author_channel_id != bot_channel_id {
             Err(Reason::User(
                 "Already in a different voice channel".to_string(),
             ))
