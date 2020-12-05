@@ -38,7 +38,7 @@ pub async fn player_check(
 
         if let Some(bot_channel_id) = bot_channel_id {
             if let Some(author_channel_id) = author_channel_id {
-                if bot_channel_id == author_channel_id {
+                if bot_channel_id != author_channel_id {
                     return Err(Reason::User(
                         "Already in a different voice channel".to_string(),
                     ));
