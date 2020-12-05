@@ -68,13 +68,7 @@ pub async fn player_check(
 fn map_check_result(result: anyhow::Result<()>) -> StdResult<(), Reason> {
     if let Err(e) = result {
         match e.downcast::<Reason>() {
-            Ok(reason) => {
-                if let Reason::User(msg) = reason {
-                    Err(Reason::User(msg))
-                } else {
-                    Err(reason)
-                }
-            }
+            Ok(reason) => Err(reason),
             Err(e) => Err(Reason::Log(format!("{:?}", e))),
         }
     } else {
@@ -152,7 +146,7 @@ async fn allow_author_or_dj(ctx: &Context, msg: &Message) -> anyhow::Result<()> 
                         Some(perm) => perm,
                         None => {
                             return Err(
-                                Reason::Log(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()).into()
+                                Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()).into()
                             )
                         }
                     };
