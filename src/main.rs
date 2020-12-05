@@ -128,7 +128,12 @@ async fn main() -> anyhow::Result<()> {
     };
 
     let framework = StandardFramework::new()
-        .configure(|c| c.owners(owners).prefix("~").allow_dm(false))
+        .configure(|c| {
+            c.owners(owners)
+                .prefix("~")
+                .allow_dm(false)
+                .case_insensitivity(true)
+        })
         .on_dispatch_error(dispatch_error)
         .help(&MY_HELP)
         .group(&GENERAL_GROUP)
