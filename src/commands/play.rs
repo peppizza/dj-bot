@@ -58,7 +58,18 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 }
             };
 
-            let (handler_lock, _) = manager.join(guild_id, connect_to).await;
+            let (handler_lock, success) = manager.join(guild_id, connect_to).await;
+
+            if success.is_ok() {
+                msg.channel_id
+                    .say(ctx, format!("Joined {}", connect_to.mention()))
+                    .await?;
+            } else {
+                msg.channel_id
+                    .say(ctx, "There was an error joining the channel")
+                    .await?;
+                return Ok(());
+            }
 
             handler_lock
         }
