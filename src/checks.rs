@@ -36,28 +36,31 @@ pub async fn player_check(
             .get(&ctx.cache.current_user_id().await)
             .and_then(|voice_state| voice_state.channel_id);
 
-        if bot_channel_id.is_some() && author_channel_id != bot_channel_id {
-            Err(Reason::User(
-                "Already in a different voice channel".to_string(),
-            ))
-        } else {
-            match options.names[0] {
-                "join" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
-                "leave" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
-                "loop" => map_check_result(allow_only_dj(ctx, msg).await),
-                "mute" => map_check_result(allow_only_dj(ctx, msg).await),
-                "now_playing" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
-                "pause" => map_check_result(allow_only_dj(ctx, msg).await),
-                "play" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
-                "queue" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
-                "remove" => map_check_result(allow_only_dj(ctx, msg).await),
-                "restart" => map_check_result(allow_only_dj(ctx, msg).await),
-                "resume" => map_check_result(allow_only_dj(ctx, msg).await),
-                "skip" => map_check_result(allow_author_or_dj(ctx, msg).await),
-                "stop" => map_check_result(allow_only_dj(ctx, msg).await),
-                "volume" => map_check_result(allow_only_dj(ctx, msg).await),
-                _ => Ok(()),
+        if let Some(bot_channel_id) = bot_channel_id {
+            if let Some(author_channel_id) = author_channel_id {
+                if bot_channel_id == author_channel_id {
+                    return Err(Reason::User(
+                        "Already in a different voice channel".to_string(),
+                    ));
+                }
             }
+        }
+        match options.names[0] {
+            "join" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
+            "leave" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
+            "loop" => map_check_result(allow_only_dj(ctx, msg).await),
+            "mute" => map_check_result(allow_only_dj(ctx, msg).await),
+            "now_playing" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
+            "pause" => map_check_result(allow_only_dj(ctx, msg).await),
+            "play" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
+            "queue" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
+            "remove" => map_check_result(allow_only_dj(ctx, msg).await),
+            "restart" => map_check_result(allow_only_dj(ctx, msg).await),
+            "resume" => map_check_result(allow_only_dj(ctx, msg).await),
+            "skip" => map_check_result(allow_author_or_dj(ctx, msg).await),
+            "stop" => map_check_result(allow_only_dj(ctx, msg).await),
+            "volume" => map_check_result(allow_only_dj(ctx, msg).await),
+            _ => Ok(()),
         }
     }
 }
