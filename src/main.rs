@@ -117,12 +117,12 @@ async fn main() -> anyhow::Result<()> {
 
     let http = Http::new_with_token(&token);
 
-    let (owners, _bot_id) = match http.get_current_application_info().await {
+    let owners = match http.get_current_application_info().await {
         Ok(info) => {
             let mut owners = HashSet::new();
             owners.insert(info.owner.id);
 
-            (owners, info.id)
+            owners
         }
         Err(why) => panic!("Could not access application info: {:?}", why),
     };
