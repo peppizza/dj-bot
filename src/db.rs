@@ -104,7 +104,7 @@ pub async fn get_all_users_with_perm(
 ) -> anyhow::Result<Vec<UserIdPermLevel>> {
     let perm_level: i16 = perm_level.into();
 
-    let rec = sqlx::query_as!(
+    let rec: Vec<UserIdPermLevel> = sqlx::query_as!(
         UserIdPermLevel,
         r#"
         SELECT user_id, perm_level
@@ -131,7 +131,7 @@ pub async fn delete_user(
     guild_id: i64,
     user_id: i64,
 ) -> anyhow::Result<Option<GuildIdUserId>> {
-    let rec = match sqlx::query_as!(
+    let rec: GuildIdUserId = match sqlx::query_as!(
         GuildIdUserId,
         r#"
         DELETE FROM perms
