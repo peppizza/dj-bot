@@ -10,7 +10,6 @@ use crate::{
 };
 
 #[command]
-#[only_in(guilds)]
 #[owners_only]
 #[help_available(false)]
 async fn get_author_perms(ctx: &Context, msg: &Message) -> CommandResult {
@@ -25,7 +24,6 @@ async fn get_author_perms(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-#[only_in(guilds)]
 #[owners_only]
 #[help_available(false)]
 async fn set_author_perms(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
@@ -48,7 +46,6 @@ async fn set_author_perms(ctx: &Context, msg: &Message, mut args: Args) -> Comma
 }
 
 #[command]
-#[only_in(guilds)]
 #[owners_only]
 #[help_available(false)]
 async fn get_perms_in_guild(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
@@ -66,7 +63,6 @@ async fn get_perms_in_guild(ctx: &Context, msg: &Message, mut args: Args) -> Com
 }
 
 #[command]
-#[only_in(guilds)]
 #[owners_only]
 #[help_available(false)]
 async fn delete_author(ctx: &Context, msg: &Message) -> CommandResult {
@@ -81,7 +77,6 @@ async fn delete_author(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-#[only_in(guilds)]
 #[owners_only]
 #[help_available(false)]
 async fn delete_current_guild(ctx: &Context, msg: &Message) -> CommandResult {

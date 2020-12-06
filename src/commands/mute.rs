@@ -7,7 +7,6 @@ use serenity::{
 use crate::checks::*;
 
 #[command]
-#[only_in(guilds)]
 #[checks(Player)]
 #[description = "Mutes the bot"]
 async fn mute(ctx: &Context, msg: &Message) -> CommandResult {

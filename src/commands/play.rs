@@ -12,7 +12,6 @@ use tracing::error;
 use crate::{checks::*, state::SongAuthorContainer};
 
 #[command]
-#[only_in(guilds)]
 #[aliases("p")]
 #[checks(Player)]
 #[description = "Adds a new song to the queue, can either be the name of a song, or a link to it"]
@@ -188,7 +187,6 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 }
 
 #[command]
-#[only_in(guilds)]
 #[help_available(false)]
 async fn donate(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id

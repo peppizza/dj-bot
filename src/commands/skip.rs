@@ -7,7 +7,6 @@ use serenity::{
 use crate::{checks::*, state::SongAuthorContainer};
 
 #[command]
-#[only_in(guilds)]
 #[checks(Player)]
 #[description = "Skips the currently playing track"]
 async fn skip(ctx: &Context, msg: &Message) -> CommandResult {

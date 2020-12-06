@@ -85,7 +85,6 @@ async fn perms_check(
 }
 
 #[command]
-#[only_in(guilds)]
 #[checks(Perms)]
 #[sub_commands(list, set)]
 async fn perms(ctx: &Context, msg: &Message) -> CommandResult {
@@ -95,7 +94,6 @@ async fn perms(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-#[only_in(guilds)]
 #[checks(Perms)]
 #[description = "Lists the users with the selected perm"]
 #[usage = "<perm level>"]
@@ -169,7 +167,6 @@ async fn list_users_with_perm(
 }
 
 #[command]
-#[only_in(guilds)]
 #[checks(Perms)]
 #[description = "Sets a users permission to the selected perm"]
 #[usage = "<mentioned user> <perm level>"]

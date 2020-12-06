@@ -7,7 +7,6 @@ use serenity::{
 use crate::{checks::*, state::SongAuthorContainer};
 
 #[command]
-#[only_in(guilds)]
 #[checks(Player)]
 #[description = "Stops the currently playing track, and clears the queue"]
 async fn stop(ctx: &Context, msg: &Message) -> CommandResult {

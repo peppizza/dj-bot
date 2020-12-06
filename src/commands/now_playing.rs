@@ -9,7 +9,6 @@ use crate::checks::*;
 use super::util::formatted_song_listing;
 
 #[command]
-#[only_in(guilds)]
 #[aliases("np", "playing")]
 #[checks(Player)]
 #[description = "Shows the currently playing track"]

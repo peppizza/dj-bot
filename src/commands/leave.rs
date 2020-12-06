@@ -7,7 +7,6 @@ use serenity::{
 use crate::checks::*;
 
 #[command]
-#[only_in(guilds)]
 #[checks(Player)]
 #[description = "Makes the bot leave the voice channel it is currently in"]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {

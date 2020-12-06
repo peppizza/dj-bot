@@ -7,7 +7,6 @@ use serenity::{
 use crate::{checks::*, state::SongAuthorContainer};
 
 #[command]
-#[only_in(guilds)]
 #[checks(Player)]
 #[description = "Removes a song from the queue, use ~queue to see what index to use"]
 #[usage = "<index of song to remove>"]

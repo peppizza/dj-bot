@@ -8,7 +8,6 @@ use songbird::tracks::LoopState;
 use crate::checks::*;
 
 #[command("loop")]
-#[only_in(guilds)]
 #[checks(Player)]
 #[description = "Enables/Disables a loop for the current track"]
 async fn loop_command(ctx: &Context, msg: &Message) -> CommandResult {

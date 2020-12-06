@@ -7,7 +7,6 @@ use serenity::{
 use crate::checks::*;
 
 #[command]
-#[only_in(guilds)]
 #[aliases("vol")]
 #[checks(Player)]
 #[description = "Shows the current volume of the track, or sets the volume of the track if an argument is supplied"]

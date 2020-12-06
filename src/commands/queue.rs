@@ -8,7 +8,6 @@ use super::util::{format_duration_to_mm_ss, formatted_song_listing};
 use crate::checks::*;
 
 #[command]
-#[only_in(guilds)]
 #[checks(Player)]
 #[description = "Shows the currently queued tracks"]
 async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
