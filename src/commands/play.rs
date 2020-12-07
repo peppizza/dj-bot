@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
     model::prelude::*,
@@ -5,11 +7,14 @@ use serenity::{
     utils::Color,
 };
 
-use songbird::input::Restartable;
+use songbird::{input::Restartable, Event};
 
 use tracing::error;
 
-use crate::{checks::*, state::SongAuthorContainer};
+use crate::{
+    checks::*,
+    state::{SongAuthorContainer, TrackStartNotifier},
+};
 
 #[command]
 #[aliases("p")]
@@ -130,7 +135,19 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let mut handler = handler_lock.lock().await;
 
-    let (track, _) = songbird::create_player(source);
+    let (track, handle) = songbird::create_player(source);
+
+    if !handler.queue().is_empty() {
+        let send_http = ctx.http.clone();
+
+        handle.add_event(
+            Event::Delayed(Duration::from_millis(5)),
+            TrackStartNotifier {
+                chan_id: msg.channel_id,
+                http: send_http,
+            },
+        )?;
+    }
 
     let uuid = track.uuid();
 
