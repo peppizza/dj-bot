@@ -60,6 +60,7 @@ pub async fn player_check(
             "skip" => map_check_result(allow_author_or_dj(ctx, msg).await),
             "stop" => map_check_result(allow_only_dj(ctx, msg).await),
             "volume" => map_check_result(allow_only_dj(ctx, msg).await),
+            "shuffle" => map_check_result(allow_only_dj(ctx, msg).await),
             _ => Ok(()),
         }
     }

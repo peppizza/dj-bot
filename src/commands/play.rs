@@ -21,6 +21,7 @@ use crate::{
 #[checks(Player)]
 #[description = "Adds a new song to the queue, can either be the name of a song, or a link to it"]
 #[usage = "<name or url of song>"]
+#[bucket = "player"]
 async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let url = match args.remains() {
         Some(url) => url.to_string(),

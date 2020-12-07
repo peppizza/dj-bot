@@ -9,6 +9,7 @@ use crate::checks::*;
 #[command]
 #[checks(Player)]
 #[description = "Mutes the bot"]
+#[bucket = "player"]
 async fn mute(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

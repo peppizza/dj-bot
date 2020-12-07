@@ -9,6 +9,7 @@ use crate::checks::*;
 #[command]
 #[checks(Player)]
 #[description = "Makes the bot leave the voice channel it is currently in"]
+#[bucket = "player"]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

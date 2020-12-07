@@ -138,7 +138,11 @@ async fn main() -> anyhow::Result<()> {
         .help(&MY_HELP)
         .group(&GENERAL_GROUP)
         .group(&MODERATION_GROUP)
-        .group(&OWNER_GROUP);
+        .group(&OWNER_GROUP)
+        .bucket("player", |b| b.delay(5))
+        .await
+        .bucket("perms", |b| b.delay(5).time_span(10).limit(3))
+        .await;
 
     let mut client = Client::builder(&token)
         .framework(framework)

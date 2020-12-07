@@ -10,6 +10,7 @@ use crate::checks::*;
 #[command]
 #[checks(Player)]
 #[description = "Shows the currently queued tracks"]
+#[bucket = "player"]
 async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

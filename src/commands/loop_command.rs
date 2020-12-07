@@ -10,6 +10,7 @@ use crate::checks::*;
 #[command("loop")]
 #[checks(Player)]
 #[description = "Enables/Disables a loop for the current track"]
+#[bucket = "player"]
 async fn loop_command(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
