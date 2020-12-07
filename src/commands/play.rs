@@ -152,6 +152,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 let length = metadata.duration.unwrap_or_default();
                 let mut seconds = (length.as_secs() % 60).to_string();
                 let minutes = (length.as_secs() / 60) % 60;
+                let url = metadata.source_url.unwrap_or_default();
 
                 if seconds.len() < 2 {
                     seconds = format!("0{}", seconds);
@@ -159,7 +160,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
                 e.title(format!("Added song: {}", title));
                 e.fields(vec![
-                    ("Title:", title, true),
+                    ("Title:", format!("[{}]({})", title, url), true),
                     ("Artist", artist, true),
                     (
                         "Spot in queue",
