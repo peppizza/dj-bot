@@ -139,7 +139,7 @@ async fn main() -> anyhow::Result<()> {
         .group(&GENERAL_GROUP)
         .group(&MODERATION_GROUP)
         .group(&OWNER_GROUP)
-        .bucket("player", |b| b.delay(5))
+        .bucket("player", |b| b.delay(3))
         .await
         .bucket("perms", |b| b.delay(5).time_span(10).limit(3))
         .await;
