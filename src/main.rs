@@ -89,13 +89,23 @@ async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
             _ => {}
         },
         DispatchError::Ratelimited(duration) => {
-            let _ = msg
-                .channel_id
-                .say(
-                    ctx,
-                    format!("Try this again in {} seconds.", duration.as_secs()),
-                )
-                .await;
+            if duration.as_secs() == 0 {
+                let _ = msg
+                    .channel_id
+                    .say(
+                        ctx,
+                        format!("Try this again in {}ms.", duration.as_millis()),
+                    )
+                    .await;
+            } else {
+                let _ = msg
+                    .channel_id
+                    .say(
+                        ctx,
+                        format!("Try this again in {} seconds.", duration.as_secs()),
+                    )
+                    .await;
+            }
         }
         e => warn!("{:?}", e),
     }
