@@ -35,7 +35,7 @@ impl<T> LenAndSwap for VecDeque<T> {
 }
 
 #[command]
-#[checks(Player)]
+#[checks(dj_only)]
 #[description = "Shuffles the queue without changing the currently playing song"]
 #[bucket = "player"]
 async fn shuffle(ctx: &Context, msg: &Message) -> CommandResult {

@@ -9,7 +9,7 @@ use songbird::tracks::PlayMode;
 use crate::checks::*;
 
 #[command]
-#[checks(Player)]
+#[checks(dj_only)]
 #[description = "Resumes a paused track"]
 #[bucket = "player"]
 async fn resume(ctx: &Context, msg: &Message) -> CommandResult {

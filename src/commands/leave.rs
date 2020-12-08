@@ -7,7 +7,7 @@ use serenity::{
 use crate::checks::*;
 
 #[command]
-#[checks(Player)]
+#[checks(not_blacklisted)]
 #[description = "Makes the bot leave the voice channel it is currently in"]
 #[bucket = "player"]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {

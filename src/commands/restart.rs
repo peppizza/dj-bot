@@ -9,7 +9,7 @@ use serenity::{
 use crate::checks::*;
 
 #[command]
-#[checks(Player)]
+#[checks(dj_only)]
 #[description = "Restarts the currently playing track"]
 #[bucket = "player"]
 async fn restart(ctx: &Context, msg: &Message) -> CommandResult {

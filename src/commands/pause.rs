@@ -8,7 +8,7 @@ use songbird::tracks::PlayMode;
 use crate::checks::*;
 
 #[command]
-#[checks(Player)]
+#[checks(dj_only)]
 #[description = "Pauses/Resumes the currently playing track"]
 #[bucket = "player"]
 async fn pause(ctx: &Context, msg: &Message) -> CommandResult {

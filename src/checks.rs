@@ -13,13 +13,42 @@ use crate::{
 };
 
 #[check]
-#[name = "Player"]
-pub async fn player_check(
+#[name = "not_blacklisted"]
+async fn not_blacklisted(
     ctx: &Context,
     msg: &Message,
     _: &mut Args,
-    options: &CommandOptions,
+    _: &CommandOptions,
 ) -> StdResult<(), Reason> {
+    check_if_already_playing(ctx, msg).await?;
+    map_check_result(allow_everyone_not_blacklisted(ctx, msg).await)
+}
+
+#[check]
+#[name = "dj_only"]
+async fn dj_only(
+    ctx: &Context,
+    msg: &Message,
+    _: &mut Args,
+    _: &CommandOptions,
+) -> StdResult<(), Reason> {
+    check_if_already_playing(ctx, msg).await?;
+    map_check_result(allow_only_dj(ctx, msg).await)
+}
+
+#[check]
+#[name = "author_or_dj"]
+async fn author_or_dj(
+    ctx: &Context,
+    msg: &Message,
+    _: &mut Args,
+    _: &CommandOptions,
+) -> StdResult<(), Reason> {
+    check_if_already_playing(ctx, msg).await?;
+    map_check_result(allow_author_or_dj(ctx, msg).await)
+}
+
+async fn check_if_already_playing(ctx: &Context, msg: &Message) -> StdResult<(), Reason> {
     let guild = msg.guild(ctx).await.unwrap();
     let perms = guild.member_permissions(ctx, msg.author.id).await.unwrap();
 
@@ -45,24 +74,8 @@ pub async fn player_check(
                 }
             }
         }
-        match options.names[0] {
-            "join" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
-            "leave" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
-            "loop" => map_check_result(allow_only_dj(ctx, msg).await),
-            "mute" => map_check_result(allow_only_dj(ctx, msg).await),
-            "now_playing" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
-            "pause" => map_check_result(allow_only_dj(ctx, msg).await),
-            "play" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
-            "queue" => map_check_result(allow_everyone_not_blacklisted(ctx, msg).await),
-            "remove" => map_check_result(allow_only_dj(ctx, msg).await),
-            "restart" => map_check_result(allow_only_dj(ctx, msg).await),
-            "resume" => map_check_result(allow_only_dj(ctx, msg).await),
-            "skip" => map_check_result(allow_author_or_dj(ctx, msg).await),
-            "stop" => map_check_result(allow_only_dj(ctx, msg).await),
-            "volume" => map_check_result(allow_only_dj(ctx, msg).await),
-            "shuffle" => map_check_result(allow_only_dj(ctx, msg).await),
-            _ => Ok(()),
-        }
+
+        Ok(())
     }
 }
 

@@ -7,7 +7,7 @@ use serenity::{
 use crate::checks::*;
 
 #[command]
-#[checks(Player)]
+#[checks(not_blacklisted)]
 #[description = "Makes the bot join the voice channel you are in"]
 #[bucket = "player"]
 async fn join(ctx: &Context, msg: &Message) -> CommandResult {

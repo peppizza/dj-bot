@@ -8,7 +8,7 @@ use songbird::tracks::LoopState;
 use crate::checks::*;
 
 #[command("loop")]
-#[checks(Player)]
+#[checks(dj_only)]
 #[description = "Enables/Disables a loop for the current track"]
 #[bucket = "player"]
 async fn loop_command(ctx: &Context, msg: &Message) -> CommandResult {

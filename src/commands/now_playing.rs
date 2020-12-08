@@ -10,7 +10,7 @@ use super::util::formatted_song_listing;
 
 #[command]
 #[aliases("np", "playing")]
-#[checks(Player)]
+#[checks(not_blacklisted)]
 #[description = "Shows the currently playing track"]
 #[bucket = "player"]
 async fn now_playing(ctx: &Context, msg: &Message) -> CommandResult {

@@ -18,7 +18,7 @@ use crate::{
 
 #[command]
 #[aliases("p")]
-#[checks(Player)]
+#[checks(not_blacklisted)]
 #[description = "Adds a new song to the queue, can either be the name of a song, or a link to it"]
 #[usage = "<name or url of song>"]
 #[bucket = "player"]
