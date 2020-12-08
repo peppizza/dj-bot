@@ -141,7 +141,7 @@ async fn main() -> anyhow::Result<()> {
         .group(&OWNER_GROUP)
         .bucket("player", |b| b.delay(3))
         .await
-        .bucket("perms", |b| b.delay(5).time_span(10).limit(3))
+        .bucket("perms", |b| b.delay(5))
         .await;
 
     let mut client = Client::builder(&token)
