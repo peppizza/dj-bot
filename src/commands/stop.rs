@@ -9,7 +9,6 @@ use crate::{checks::*, state::SongAuthorContainer};
 #[command]
 #[checks(dj_only)]
 #[description = "Stops the currently playing track, and clears the queue"]
-#[bucket = "player"]
 async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

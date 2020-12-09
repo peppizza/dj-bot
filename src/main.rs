@@ -34,9 +34,9 @@ use std::{
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{
-    db_testing::*, help::*, join::*, leave::*, loop_command::*, mute::*, now_playing::*, pause::*,
-    ping::*, play::*, queue::*, remove::*, restart::*, resume::*, shuffle::*, skip::*, stop::*,
-    volume::*,
+    db_testing::*, help::*, join::*, leave::*, loop_command::*, lyrics::*, mute::*, now_playing::*,
+    pause::*, ping::*, play::*, queue::*, remove::*, restart::*, resume::*, shuffle::*, skip::*,
+    stop::*, volume::*,
 };
 
 use commands::perms::*;
@@ -61,7 +61,8 @@ use state::*;
     queue,
     now_playing,
     shuffle,
-    donate
+    donate,
+    lyrics
 )]
 struct General;
 
@@ -124,6 +125,8 @@ async fn main() -> anyhow::Result<()> {
 
     let pool = PgPool::connect(&env::var("DATABASE_URL")?).await?;
 
+    let reqwest_client = reqwest::Client::new();
+
     let token = env::var("DISCORD_TOKEN")?;
 
     let http = Http::new_with_token(&token);
@@ -149,11 +152,7 @@ async fn main() -> anyhow::Result<()> {
         .help(&MY_HELP)
         .group(&GENERAL_GROUP)
         .group(&MODERATION_GROUP)
-        .group(&OWNER_GROUP)
-        .bucket("player", |b| b.delay(3))
-        .await
-        .bucket("perms", |b| b.delay(5))
-        .await;
+        .group(&OWNER_GROUP);
 
     let mut client = Client::builder(&token)
         .framework(framework)
@@ -172,6 +171,7 @@ async fn main() -> anyhow::Result<()> {
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
         data.insert::<SongAuthorContainer>(Arc::new(RwLock::new(HashMap::new())));
         data.insert::<PoolContainer>(pool);
+        data.insert::<ReqwestClientContainer>(reqwest_client);
     }
 
     let shard_manager = client.shard_manager.clone();

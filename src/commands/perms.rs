@@ -87,7 +87,6 @@ async fn perms_check(
 #[command]
 #[checks(Perms)]
 #[sub_commands(list, set)]
-#[bucket = "perms"]
 async fn perms(ctx: &Context, msg: &Message) -> CommandResult {
     msg.reply_ping(ctx, "Available commands are: `perms set`, and `perms list`")
         .await?;
@@ -98,7 +97,6 @@ async fn perms(ctx: &Context, msg: &Message) -> CommandResult {
 #[checks(Perms)]
 #[description = "Lists the users with the selected perm"]
 #[usage = "<perm level>"]
-#[bucket = "perms"]
 async fn list(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let level = match args.single_quoted::<String>() {
         Ok(level) => level,
@@ -172,7 +170,6 @@ async fn list_users_with_perm(
 #[checks(Perms)]
 #[description = "Sets a users permission to the selected perm"]
 #[usage = "<mentioned user> <perm level>"]
-#[bucket = "perms"]
 async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let user = match args_to_user(ctx, msg, &mut args).await? {
         Some(user) => user,

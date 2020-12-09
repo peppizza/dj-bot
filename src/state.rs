@@ -178,6 +178,12 @@ impl TypeMapKey for PoolContainer {
     type Value = PgPool;
 }
 
+pub struct ReqwestClientContainer;
+
+impl TypeMapKey for ReqwestClientContainer {
+    type Value = reqwest::Client;
+}
+
 pub struct TrackStartNotifier {
     pub chan_id: ChannelId,
     pub http: Arc<Http>,
