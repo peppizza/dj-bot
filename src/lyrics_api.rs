@@ -25,8 +25,6 @@ mod tests {
 
         let code = res.status();
 
-        let body = res.text().await.unwrap();
-
         assert!(code.is_success());
     }
 }
