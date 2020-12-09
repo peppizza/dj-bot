@@ -1022,6 +1022,8 @@ dependencies = [
  "dotenv",
  "lazy_static",
  "rand",
+ "reqwest",
+ "serde",
  "serenity",
  "songbird",
  "sqlx",

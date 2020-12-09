@@ -2,6 +2,7 @@ mod checks;
 mod commands;
 mod consts;
 mod db;
+mod lyrics_api;
 mod state;
 
 use serenity::{

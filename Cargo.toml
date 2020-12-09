@@ -17,6 +17,8 @@ sqlx = { version = "0.4", features = ["runtime-tokio-rustls", "postgres", "offli
 anyhow = "1.0"
 rand = "0.7"
 lazy_static = "1.4"
+reqwest = { version = "0.10", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1.0", features = ["derive"] }
 
 [dependencies.serenity]
 git = "https://github.com/serenity-rs/serenity"
