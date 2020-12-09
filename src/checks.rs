@@ -108,7 +108,7 @@ async fn allow_everyone_not_blacklisted(ctx: &Context, msg: &Message) -> anyhow:
     if user_perm != UserPerm::Blacklisted {
         Ok(())
     } else {
-        Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()).into())
+        Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()).into())
     }
 }
 
@@ -124,13 +124,13 @@ async fn allow_only_dj(ctx: &Context, msg: &Message) -> anyhow::Result<()> {
     .await?
     {
         Some(perm) => perm,
-        None => return Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()).into()),
+        None => return Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()).into()),
     };
 
     if user_perm >= UserPerm::DJ {
         Ok(())
     } else {
-        Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()).into())
+        Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()).into())
     }
 }
 
@@ -160,7 +160,7 @@ async fn allow_author_or_dj(ctx: &Context, msg: &Message) -> anyhow::Result<()> 
                         Some(perm) => perm,
                         None => {
                             return Err(
-                                Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()).into()
+                                Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()).into()
                             )
                         }
                     };
@@ -168,7 +168,7 @@ async fn allow_author_or_dj(ctx: &Context, msg: &Message) -> anyhow::Result<()> 
                 if user_perm >= UserPerm::DJ {
                     Ok(())
                 } else {
-                    Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()).into())
+                    Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()).into())
                 }
             }
         } else {
