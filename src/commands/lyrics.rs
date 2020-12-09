@@ -34,8 +34,6 @@ async fn lyrics(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let artist = song_data.artist;
     let lyrics = song_data.lyrics;
 
-    println!("{}", lyrics);
-
     if lyrics.len() > 2048 {
         let subs = lyrics
             .as_bytes()
