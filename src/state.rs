@@ -112,12 +112,24 @@ impl EventHandler for Handler {
                             .map(|state| state.channel_id)
                         {
                             Some(c) => c,
-                            None => continue,
+                            None => {
+                                let manager = songbird::get(&ctx).await.unwrap();
+
+                                let _ = manager.remove(guild_id).await;
+
+                                continue;
+                            }
                         };
 
                         let bot_voice_channel = match bot_voice_channel {
                             Some(c) => c,
-                            None => continue,
+                            None => {
+                                let manager = songbird::get(&ctx).await.unwrap();
+
+                                let _ = manager.remove(guild_id).await;
+
+                                continue;
+                            }
                         };
 
                         let count_of_members = guild
