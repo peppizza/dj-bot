@@ -173,9 +173,16 @@ impl EventHandler for Handler {
                     let shard_id = ctx.shard_id;
                     let shard_count = ctx.cache.shard_count().await;
 
-                    let _ = client.post("https://top.gg/api/bots/stats").json(
-                        &serde_json::json!({ "server_count": server_count, "shard_id": shard_id, "shard_count": shard_count}),
-                    ).bearer_auth(DBL_API_KEY.clone()).send().await;
+                    let _ = client
+                        .post("https://top.gg/api/bots/stats")
+                        .json(&serde_json::json!({
+                            "server_count": server_count,
+                            "shard_id": shard_id,
+                            "shard_count": shard_count,
+                        }))
+                        .bearer_auth(DBL_API_KEY.clone())
+                        .send()
+                        .await;
 
                     tokio::time::delay_for(Duration::from_secs(30 * 60)).await;
                 }
