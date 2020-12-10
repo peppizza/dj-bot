@@ -20,8 +20,16 @@ async fn not_blacklisted(
     _: &mut Args,
     _: &CommandOptions,
 ) -> StdResult<(), Reason> {
-    check_if_already_playing(ctx, msg).await?;
-    map_check_result(allow_everyone_not_blacklisted(ctx, msg).await)
+    let guild = msg.guild(ctx).await.unwrap();
+    if check_if_administrator(ctx, guild, msg.author.id)
+        .await
+        .is_ok()
+    {
+        Ok(())
+    } else {
+        check_if_already_playing(ctx, msg).await?;
+        map_check_result(allow_everyone_not_blacklisted(ctx, msg).await)
+    }
 }
 
 #[check]
@@ -32,8 +40,16 @@ async fn dj_only(
     _: &mut Args,
     _: &CommandOptions,
 ) -> StdResult<(), Reason> {
-    check_if_already_playing(ctx, msg).await?;
-    map_check_result(allow_only_dj(ctx, msg).await)
+    let guild = msg.guild(ctx).await.unwrap();
+    if check_if_administrator(ctx, guild, msg.author.id)
+        .await
+        .is_ok()
+    {
+        Ok(())
+    } else {
+        check_if_already_playing(ctx, msg).await?;
+        map_check_result(allow_only_dj(ctx, msg).await)
+    }
 }
 
 #[check]
@@ -44,39 +60,55 @@ async fn author_or_dj(
     _: &mut Args,
     _: &CommandOptions,
 ) -> StdResult<(), Reason> {
-    check_if_already_playing(ctx, msg).await?;
-    map_check_result(allow_author_or_dj(ctx, msg).await)
+    let guild = msg.guild(ctx).await.unwrap();
+    if check_if_administrator(ctx, guild, msg.author.id)
+        .await
+        .is_ok()
+    {
+        Ok(())
+    } else {
+        check_if_already_playing(ctx, msg).await?;
+        map_check_result(allow_author_or_dj(ctx, msg).await)
+    }
+}
+
+async fn check_if_administrator(
+    ctx: &Context,
+    guild: Guild,
+    author: UserId,
+) -> StdResult<(), Reason> {
+    let perms = guild.member_permissions(ctx, author).await.unwrap();
+    if perms.administrator() {
+        Ok(())
+    } else {
+        Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()))
+    }
 }
 
 async fn check_if_already_playing(ctx: &Context, msg: &Message) -> StdResult<(), Reason> {
     let guild = msg.guild(ctx).await.unwrap();
-    let perms = guild.member_permissions(ctx, msg.author.id).await.unwrap();
 
-    if perms.administrator() {
-        Ok(())
-    } else {
-        let author_channel_id = guild
-            .voice_states
-            .get(&msg.author.id)
-            .and_then(|voice_state| voice_state.channel_id);
+    let author_channel_id = guild
+        .voice_states
+        .get(&msg.author.id)
+        .and_then(|voice_state| voice_state.channel_id);
 
-        let bot_channel_id = guild
-            .voice_states
-            .get(&ctx.cache.current_user_id().await)
-            .and_then(|voice_state| voice_state.channel_id);
+    let bot_channel_id = guild
+        .voice_states
+        .get(&ctx.cache.current_user_id().await)
+        .and_then(|voice_state| voice_state.channel_id);
 
-        if let Some(bot_channel_id) = bot_channel_id {
-            if let Some(author_channel_id) = author_channel_id {
-                if bot_channel_id != author_channel_id {
-                    return Err(Reason::User(
-                        "Already in a different voice channel".to_string(),
-                    ));
-                }
+    if let Some(bot_channel_id) = bot_channel_id {
+        if let Some(author_channel_id) = author_channel_id {
+            if bot_channel_id != author_channel_id {
+                return Err(Reason::User(
+                    "Already in a different voice channel".to_string(),
+                ));
             }
         }
-
-        Ok(())
     }
+
+    Ok(())
 }
 
 fn map_check_result(result: anyhow::Result<()>) -> StdResult<(), Reason> {

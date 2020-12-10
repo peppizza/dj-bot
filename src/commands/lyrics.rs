@@ -9,18 +9,30 @@ use crate::{checks::*, lyrics_api::get_lyrics};
 
 #[command]
 #[checks(not_blacklisted)]
-#[description = "Shows the lyrics to a song"]
+#[description = "Shows the lyrics to a song.  If no arguments are provided it will show the lyrics of the currently playing song"]
 async fn lyrics(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let name_of_song = match args.remains() {
-        Some(name) => name,
+        Some(name) => name.to_string(),
         None => {
-            msg.channel_id
-                .say(
-                    ctx,
-                    "Please supply the name of a song you want the lyrics to",
-                )
-                .await?;
-            return Ok(());
+            let manager = songbird::get(ctx).await.unwrap().clone();
+
+            if let Some(handler_lock) = manager.get(msg.guild_id.unwrap()) {
+                let handler = handler_lock.lock().await;
+                let queue = handler.queue();
+
+                if let Some(handle) = queue.current() {
+                    let metadata = handle.metadata();
+                    let title = metadata.title.clone().unwrap();
+                    let artist = metadata.artist.clone().unwrap();
+                    format!("{} {}", title, artist)
+                } else {
+                    msg.channel_id.say(ctx, "Nothing playing").await?;
+                    return Ok(());
+                }
+            } else {
+                msg.channel_id.say(ctx, "Nothing playing").await?;
+                return Ok(());
+            }
         }
     };
 
@@ -28,7 +40,7 @@ async fn lyrics(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         .say(ctx, format!("Searching the lyrics for {}", name_of_song))
         .await?;
 
-    let song_data = get_lyrics(ctx, name_of_song.to_string()).await?;
+    let song_data = get_lyrics(ctx, name_of_song).await?;
 
     let name = song_data.name;
     let artist = song_data.artist;
