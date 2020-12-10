@@ -50,9 +50,8 @@ async fn lyrics(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         let subs = lyrics
             .as_bytes()
             .chunks(2048)
-            .map(std::str::from_utf8)
-            .collect::<Result<Vec<&str>, _>>()
-            .unwrap();
+            .map(|v| unsafe { std::str::from_utf8_unchecked(v) })
+            .collect::<Vec<&str>>();
 
         for (idx, sub) in subs.iter().enumerate() {
             msg.channel_id
