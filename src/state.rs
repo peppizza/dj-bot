@@ -112,24 +112,12 @@ impl EventHandler for Handler {
                             .map(|state| state.channel_id)
                         {
                             Some(c) => c,
-                            None => {
-                                let manager = songbird::get(&ctx).await.unwrap();
-
-                                let _ = manager.remove(guild_id).await;
-
-                                continue;
-                            }
+                            None => continue,
                         };
 
                         let bot_voice_channel = match bot_voice_channel {
                             Some(c) => c,
-                            None => {
-                                let manager = songbird::get(&ctx).await.unwrap();
-
-                                let _ = manager.remove(guild_id).await;
-
-                                continue;
-                            }
+                            None => continue,
                         };
 
                         let count_of_members = guild
@@ -189,6 +177,30 @@ impl EventHandler for Handler {
             });
 
             self.is_loop_running.store(true, Ordering::Relaxed);
+        }
+    }
+
+    async fn voice_state_update(
+        &self,
+        ctx: Context,
+        _: Option<GuildId>,
+        old: Option<VoiceState>,
+        new: VoiceState,
+    ) {
+        if new.user_id != ctx.cache.current_user_id().await {
+            return;
+        }
+
+        if new.channel_id.is_none() {
+            let manager = songbird::get(&ctx).await.unwrap();
+
+            if let Some(old) = old {
+                if old.channel_id.is_some() {
+                    let _ = manager.remove(new.guild_id.unwrap()).await;
+                }
+            } else {
+                let _ = manager.remove(new.guild_id.unwrap()).await;
+            }
         }
     }
 }
