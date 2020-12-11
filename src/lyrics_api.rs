@@ -1,3 +1,4 @@
+use reqwest::StatusCode;
 use serenity::client::Context;
 
 use crate::state::ReqwestClientContainer;
@@ -77,7 +78,7 @@ pub struct Data {
     pub artist: String,
 }
 
-pub async fn get_lyrics(ctx: &Context, search: String) -> anyhow::Result<Data> {
+pub async fn get_lyrics(ctx: &Context, search: String) -> anyhow::Result<Option<Data>> {
     let data = ctx.data.read().await;
     let client = data.get::<ReqwestClientContainer>().unwrap().clone();
 
@@ -88,11 +89,13 @@ pub async fn get_lyrics(ctx: &Context, search: String) -> anyhow::Result<Data> {
         .send()
         .await?;
 
-    let res = res.error_for_status()?;
+    if let StatusCode::NOT_FOUND = res.status() {
+        Ok(None)
+    } else {
+        let data: LyricResponse = res.json().await?;
 
-    let data: LyricResponse = res.json().await?;
+        let song_data = data.data[0].clone();
 
-    let song_data = data.data[0].clone();
-
-    Ok(song_data)
+        Ok(Some(song_data))
+    }
 }
