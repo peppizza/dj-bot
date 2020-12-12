@@ -23,6 +23,7 @@ mod tests {
             .get("https://api.ksoft.si/lyrics/search")
             .bearer_auth(LYRIC_API_KEY.clone())
             .query(&[("q", "fuck you ceelo green"), ("limit", "1")])
+            .header("User-Agent", "DJBOT_TEST_OUTPUT_LYRIC_REQUEST")
             .send()
             .await;
 
@@ -47,6 +48,7 @@ mod tests {
             .get("https://api.ksoft.si/lyrics/search")
             .bearer_auth(LYRIC_API_KEY.clone())
             .query(&[("q", "fuck you ceelo green"), ("limit", "1")])
+            .header("User-Agent", "DJBOT_TEST_MAP_LYRIC_TO_LYRIC_RESPONSE")
             .send()
             .await;
 
@@ -86,6 +88,7 @@ pub async fn get_lyrics(ctx: &Context, search: String) -> anyhow::Result<Option<
         .get("https://api.ksoft.si/lyrics/search")
         .bearer_auth(LYRIC_API_KEY.clone())
         .query(&[("q", search.as_str()), ("limit", "1")])
+        .header("User-Agent", "dj-bot/1.0.0")
         .send()
         .await?;
 
