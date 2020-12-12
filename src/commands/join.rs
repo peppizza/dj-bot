@@ -1,10 +1,13 @@
+use std::time::Duration;
+
 use serenity::{
     framework::standard::{macros::command, CommandResult},
     model::prelude::*,
     prelude::*,
 };
+use songbird::Event;
 
-use crate::checks::*;
+use crate::{checks::*, state::ChannelIdleChecker};
 
 #[command]
 #[checks(not_blacklisted)]
@@ -36,9 +39,20 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
         return Ok(());
     }
 
-    let (_, success) = manager.join(guild_id, connect_to).await;
+    let (handler_lock, success) = manager.join(guild_id, connect_to).await;
 
     if success.is_ok() {
+        let mut handler = handler_lock.lock().await;
+        handler.add_global_event(
+            Event::Periodic(Duration::from_secs(60), None),
+            ChannelIdleChecker {
+                handler_lock: handler_lock.clone(),
+                elapsed: Default::default(),
+                chan_id: msg.channel_id,
+                http: ctx.http.clone(),
+            },
+        );
+
         msg.channel_id
             .say(ctx, format!("Joined {}", connect_to.mention()))
             .await?;

@@ -13,7 +13,7 @@ use tracing::error;
 
 use crate::{
     checks::*,
-    state::{SongAuthorContainer, TrackStartNotifier},
+    state::{ChannelIdleChecker, SongAuthorContainer, TrackStartNotifier},
 };
 
 #[command]
@@ -65,6 +65,16 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             let (handler_lock, success) = manager.join(guild_id, connect_to).await;
 
             if success.is_ok() {
+                let mut handler = handler_lock.lock().await;
+                handler.add_global_event(
+                    Event::Periodic(Duration::from_secs(60), None),
+                    ChannelIdleChecker {
+                        handler_lock: handler_lock.clone(),
+                        elapsed: Default::default(),
+                        chan_id: msg.channel_id,
+                        http: ctx.http.clone(),
+                    },
+                );
                 msg.channel_id
                     .say(ctx, format!("Joined {}", connect_to.mention()))
                     .await?;
