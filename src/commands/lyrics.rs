@@ -71,6 +71,10 @@ async fn lyrics(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
                         e.description(sub);
 
+                        if idx == subs.len() - 1 {
+                            e.footer(|f| f.text("Lyrics provided by KSoft.Si"));
+                        }
+
                         e.color(Color::DARK_GREEN);
 
                         e
@@ -85,6 +89,8 @@ async fn lyrics(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     e.title(format!("Lyrics for `{}` by `{}`", name, artist));
 
                     e.description(lyrics);
+
+                    e.footer(|f| f.text("Lyrics provided by KSoft.Si"));
 
                     e.color(Color::DARK_GREEN);
 
