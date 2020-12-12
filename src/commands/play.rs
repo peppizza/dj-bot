@@ -7,13 +7,13 @@ use serenity::{
     utils::Color,
 };
 
-use songbird::{input::Restartable, Event};
+use songbird::{input::Restartable, Event, TrackEvent};
 
 use tracing::error;
 
 use crate::{
     checks::*,
-    state::{ChannelIdleChecker, SongAuthorContainer, TrackStartNotifier},
+    state::{ChannelIdleChecker, RemoveFromAuthorMap, SongAuthorContainer, TrackStartNotifier},
 };
 
 #[command]
@@ -75,6 +75,13 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                         http: ctx.http.clone(),
                     },
                 );
+
+                let data = ctx.data.read().await;
+                let map = data.get::<SongAuthorContainer>().unwrap().clone();
+
+                handler
+                    .add_global_event(Event::Track(TrackEvent::End), RemoveFromAuthorMap { map });
+
                 msg.channel_id
                     .say(ctx, format!("Joined {}", connect_to.mention()))
                     .await?;

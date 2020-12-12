@@ -5,9 +5,12 @@ use serenity::{
     model::prelude::*,
     prelude::*,
 };
-use songbird::Event;
+use songbird::{Event, TrackEvent};
 
-use crate::{checks::*, state::ChannelIdleChecker};
+use crate::{
+    checks::*,
+    state::{ChannelIdleChecker, RemoveFromAuthorMap, SongAuthorContainer},
+};
 
 #[command]
 #[checks(not_blacklisted)]
@@ -52,6 +55,11 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
                 http: ctx.http.clone(),
             },
         );
+
+        let data = ctx.data.read().await;
+        let map = data.get::<SongAuthorContainer>().unwrap().clone();
+
+        handler.add_global_event(Event::Track(TrackEvent::End), RemoveFromAuthorMap { map });
 
         msg.channel_id
             .say(ctx, format!("Joined {}", connect_to.mention()))

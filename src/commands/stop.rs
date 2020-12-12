@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::{checks::*, state::SongAuthorContainer};
+use crate::checks::*;
 
 #[command]
 #[checks(dj_only)]
@@ -14,23 +14,7 @@ async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
 
     let manager = songbird::get(ctx).await.unwrap().clone();
 
-    if let Some(handler_lock) = manager.get(guild_id) {
-        {
-            let handler = handler_lock.lock().await;
-            let queue = handler.queue();
-            let current_queue = queue.current_queue();
-
-            if !current_queue.is_empty() {
-                let data = ctx.data.read().await;
-                let author_container_lock = data.get::<SongAuthorContainer>().unwrap().clone();
-                let mut author_container = author_container_lock.write().await;
-
-                for track in current_queue {
-                    author_container.remove(&track.uuid());
-                }
-            }
-        }
-
+    if manager.get(guild_id).is_some() {
         manager.remove(guild_id).await?;
 
         msg.channel_id.say(ctx, "Cleared queue").await?;

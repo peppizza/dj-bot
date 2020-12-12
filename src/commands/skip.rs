@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::{checks::*, state::SongAuthorContainer};
+use crate::checks::*;
 
 #[command]
 #[checks(author_or_dj)]
@@ -17,14 +17,7 @@ async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
     if let Some(handler_lock) = manager.get(guild_id) {
         let handler = handler_lock.lock().await;
         let queue = handler.queue();
-        if let Some(handle) = queue.current() {
-            {
-                let data = ctx.data.read().await;
-                let author_container_lock = data.get::<SongAuthorContainer>().unwrap().clone();
-                let mut author_container = author_container_lock.write().await;
-
-                author_container.remove(&handle.uuid());
-            }
+        if queue.current().is_some() {
             queue.skip()?;
         } else {
             msg.reply_ping(ctx, "No song currently playing").await?;

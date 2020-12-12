@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::{checks::*, state::SongAuthorContainer};
+use crate::checks::*;
 
 #[command]
 #[checks(dj_only)]
@@ -21,15 +21,6 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         let queue = handler.queue();
         if !queue.is_empty() {
             if index == 0 {
-                {
-                    let current = queue.current().unwrap();
-                    let data = ctx.data.read().await;
-                    let author_container_lock = data.get::<SongAuthorContainer>().unwrap().clone();
-                    let mut author_container = author_container_lock.write().await;
-
-                    author_container.remove(&current.uuid());
-                }
-
                 queue.skip()?;
 
                 msg.channel_id.say(ctx, "Skipped the song").await?;
@@ -41,11 +32,7 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 let track = queue.dequeue(index).unwrap();
                 let metadata = track.metadata();
                 let title = metadata.title.clone().unwrap_or_default();
-                let uuid = track.uuid();
-                let data = ctx.data.read().await;
-                let author_container_lock = data.get::<SongAuthorContainer>().unwrap().clone();
-                let mut author_container = author_container_lock.write().await;
-                author_container.remove(&uuid);
+
                 track.stop()?;
 
                 msg.channel_id

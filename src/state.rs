@@ -134,23 +134,6 @@ impl EventHandler for Handler {
                         if count_of_members == 1 {
                             let manager = songbird::get(&ctx).await.unwrap();
 
-                            if let Some(handler_lock) = manager.get(guild_id) {
-                                let handler = handler_lock.lock().await;
-                                let queue = handler.queue();
-                                let current_queue = queue.current_queue();
-
-                                if !current_queue.is_empty() {
-                                    let data = ctx.data.read().await;
-                                    let author_container_lock =
-                                        data.get::<SongAuthorContainer>().unwrap().clone();
-                                    let mut author_container = author_container_lock.write().await;
-
-                                    for track in current_queue {
-                                        author_container.remove(&track.uuid());
-                                    }
-                                }
-                            }
-
                             let _ = manager.remove(guild_id).await;
                         }
                     }
@@ -200,7 +183,7 @@ impl EventHandler for Handler {
     async fn voice_state_update(
         &self,
         ctx: Context,
-        guild_id: Option<GuildId>,
+        _: Option<GuildId>,
         old: Option<VoiceState>,
         new: VoiceState,
     ) {
@@ -208,50 +191,14 @@ impl EventHandler for Handler {
             return;
         }
 
-        let guild_id = guild_id.unwrap();
-
         if new.channel_id.is_none() {
             let manager = songbird::get(&ctx).await.unwrap();
 
             if let Some(old) = old {
                 if old.channel_id.is_some() {
-                    if let Some(handler_lock) = manager.get(guild_id) {
-                        let handler = handler_lock.lock().await;
-                        let queue = handler.queue();
-                        let current_queue = queue.current_queue();
-
-                        if !current_queue.is_empty() {
-                            let data = ctx.data.read().await;
-                            let author_container_lock =
-                                data.get::<SongAuthorContainer>().unwrap().clone();
-                            let mut author_container = author_container_lock.write().await;
-
-                            for track in current_queue {
-                                author_container.remove(&track.uuid());
-                            }
-                        }
-                    }
-
                     let _ = manager.remove(new.guild_id.unwrap()).await;
                 }
             } else {
-                if let Some(handler_lock) = manager.get(guild_id) {
-                    let handler = handler_lock.lock().await;
-                    let queue = handler.queue();
-                    let current_queue = queue.current_queue();
-
-                    if !current_queue.is_empty() {
-                        let data = ctx.data.read().await;
-                        let author_container_lock =
-                            data.get::<SongAuthorContainer>().unwrap().clone();
-                        let mut author_container = author_container_lock.write().await;
-
-                        for track in current_queue {
-                            author_container.remove(&track.uuid());
-                        }
-                    }
-                }
-
                 let _ = manager.remove(new.guild_id.unwrap()).await;
             }
         }
@@ -304,6 +251,23 @@ impl VoiceEventHandler for TrackStartNotifier {
                     })
                 })
                 .await;
+        }
+
+        None
+    }
+}
+
+pub struct RemoveFromAuthorMap {
+    pub map: Arc<RwLock<HashMap<uuid::Uuid, UserId>>>,
+}
+
+#[async_trait]
+impl VoiceEventHandler for RemoveFromAuthorMap {
+    async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
+        if let EventContext::Track(&[(_, handle)]) = ctx {
+            let uuid = handle.uuid();
+            let mut map = self.map.write().await;
+            map.remove(&uuid);
         }
 
         None
