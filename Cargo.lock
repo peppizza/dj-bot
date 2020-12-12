@@ -352,6 +352,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "dj-bot"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "dotenv",
+ "lazy_static",
+ "rand",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serenity",
+ "songbird",
+ "sqlx",
+ "tokio",
+ "tracing",
+ "tracing-futures",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
 name = "dotenv"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1018,27 +1039,6 @@ checksum = "5a33c1b55807fbed163481b5ba66db4b2fa6cde694a5027be10fb724206c5897"
 dependencies = [
  "socket2",
  "winapi 0.3.9",
-]
-
-[[package]]
-name = "music-bot"
-version = "1.0.0"
-dependencies = [
- "anyhow",
- "dotenv",
- "lazy_static",
- "rand",
- "reqwest",
- "serde",
- "serde_json",
- "serenity",
- "songbird",
- "sqlx",
- "tokio",
- "tracing",
- "tracing-futures",
- "tracing-subscriber",
- "uuid",
 ]
 
 [[package]]

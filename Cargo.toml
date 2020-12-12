@@ -1,5 +1,5 @@
 [package]
-name = "music-bot"
+name = "dj-bot"
 version = "1.0.0"
 authors = ["Spencer <spencervess@gmail.com>"]
 edition = "2018"
