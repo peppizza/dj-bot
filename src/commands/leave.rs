@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::checks::*;
+use crate::{checks::*, state::SongAuthorContainer};
 
 #[command]
 #[checks(not_blacklisted)]
@@ -13,9 +13,21 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
     let manager = songbird::get(ctx).await.unwrap().clone();
-    let has_handler = manager.get(guild_id).is_some();
 
-    if has_handler {
+    if let Some(handler_lock) = manager.get(guild_id) {
+        let handler = handler_lock.lock().await;
+        let queue = handler.queue();
+        let current_queue = queue.current_queue();
+
+        if !current_queue.is_empty() {
+            let data = ctx.data.read().await;
+            let author_container_lock = data.get::<SongAuthorContainer>().unwrap().clone();
+            let mut author_container = author_container_lock.write().await;
+
+            for track in current_queue {
+                author_container.remove(&track.uuid());
+            }
+        }
         manager.remove(guild_id).await?;
 
         msg.channel_id.say(ctx, "Left voice channel").await?;
