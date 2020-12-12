@@ -88,7 +88,7 @@ pub async fn get_lyrics(ctx: &Context, search: String) -> anyhow::Result<Option<
         .get("https://api.ksoft.si/lyrics/search")
         .bearer_auth(LYRIC_API_KEY.clone())
         .query(&[("q", search.as_str()), ("limit", "1")])
-        .header("User-Agent", "dj-bot/1.0.0")
+        .header("User-Agent", "dj-bot")
         .send()
         .await?;
 
