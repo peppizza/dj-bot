@@ -29,8 +29,6 @@ async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
                     author_container.remove(&track.uuid());
                 }
             }
-
-            queue.stop();
         }
 
         manager.remove(guild_id).await?;
