@@ -1677,7 +1677,7 @@ dependencies = [
 [[package]]
 name = "songbird"
 version = "0.1.0"
-source = "git+https://github.com/serenity-rs/songbird?branch=current#700f20dff9211e81f170df115433bafe113639f0"
+source = "git+https://github.com/serenity-rs/songbird?branch=current#8d6bd4fd637be2c50403062f6f7e462b36647687"
 dependencies = [
  "async-trait",
  "async-tungstenite",

@@ -136,7 +136,13 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
                 reply_msg
                     .edit(ctx, |m| {
-                        m.content("There was a problem searching for the song")
+                        m.embed(|e| {
+                            e.title("There was a problem downloading that song, try using the direct url");
+
+                            e.color(Color::DARK_RED);
+
+                            e
+                        })
                     })
                     .await?;
 
