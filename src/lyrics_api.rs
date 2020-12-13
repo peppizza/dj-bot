@@ -95,6 +95,8 @@ pub async fn get_lyrics(ctx: &Context, search: String) -> anyhow::Result<Option<
     if let StatusCode::NOT_FOUND = res.status() {
         Ok(None)
     } else {
+        let res = res.error_for_status()?;
+
         let data: LyricResponse = res.json().await?;
 
         let song_data = data.data[0].clone();
