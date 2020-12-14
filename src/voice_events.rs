@@ -1,4 +1,4 @@
-use serenity::{async_trait, http::Http, model::prelude::*, prelude::*};
+use serenity::{async_trait, client::Cache, http::Http, model::prelude::*, prelude::*};
 use songbird::{Call, Event, EventContext, EventHandler as VoiceEventHandler};
 
 use std::sync::{
@@ -57,6 +57,10 @@ impl VoiceEventHandler for RemoveFromAuthorMap {
 pub struct ChannelIdleChecker {
     pub handler_lock: Arc<Mutex<Call>>,
     pub elapsed: Arc<AtomicUsize>,
+    pub chan_id: ChannelId,
+    pub guild_id: GuildId,
+    pub http: Arc<Http>,
+    pub cache: Arc<Cache>,
 }
 
 #[async_trait]
@@ -66,7 +70,19 @@ impl VoiceEventHandler for ChannelIdleChecker {
 
         if handler.queue().is_empty() {
             if (self.elapsed.fetch_add(1, Ordering::Relaxed) + 1) > 5 {
-                let _ = handler.leave().await;
+                let guild = self.cache.guild(self.guild_id).await.unwrap();
+
+                if guild
+                    .voice_states
+                    .get(&self.cache.current_user_id().await)
+                    .is_some()
+                {
+                    let _ = handler.leave().await;
+                    let _ = self
+                        .chan_id
+                        .say(&self.http, "I left the channel due to inactivity")
+                        .await;
+                }
 
                 return Some(Event::Cancel);
             }

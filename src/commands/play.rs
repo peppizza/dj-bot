@@ -72,6 +72,10 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     ChannelIdleChecker {
                         handler_lock: handler_lock.clone(),
                         elapsed: Default::default(),
+                        guild_id,
+                        chan_id: msg.channel_id,
+                        http: ctx.http.clone(),
+                        cache: ctx.cache.clone(),
                     },
                 );
 

@@ -52,6 +52,10 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
             ChannelIdleChecker {
                 handler_lock: handler_lock.clone(),
                 elapsed: Default::default(),
+                chan_id: msg.channel_id,
+                guild_id,
+                http: ctx.http.clone(),
+                cache: ctx.cache.clone(),
             },
         );
 
