@@ -57,24 +57,16 @@ impl VoiceEventHandler for RemoveFromAuthorMap {
 pub struct ChannelIdleChecker {
     pub handler_lock: Arc<Mutex<Call>>,
     pub elapsed: Arc<AtomicUsize>,
-    pub chan_id: ChannelId,
-    pub http: Arc<Http>,
 }
 
 #[async_trait]
 impl VoiceEventHandler for ChannelIdleChecker {
     async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
         let mut handler = self.handler_lock.lock().await;
+
         if handler.queue().is_empty() {
             if (self.elapsed.fetch_add(1, Ordering::Relaxed) + 1) > 5 {
                 let _ = handler.leave().await;
-                let _ = self
-                    .chan_id
-                    .say(
-                        &self.http,
-                        "I left the voice channel because I was inactive for too long",
-                    )
-                    .await;
 
                 return Some(Event::Cancel);
             }
