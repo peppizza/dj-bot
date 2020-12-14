@@ -5,6 +5,7 @@ mod data;
 mod db;
 mod events;
 mod lyrics_api;
+mod util;
 mod voice_events;
 
 use serenity::{

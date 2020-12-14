@@ -9,8 +9,9 @@ use std::{
 use tracing::{debug, error, info};
 
 use crate::{
-    data::{PoolContainer, ReqwestClientContainer},
+    data::{PoolContainer, ReqwestClientContainer, SongAuthorContainer},
     db::{delete_guild, delete_user},
+    util::remove_entries_from_author_container,
 };
 
 lazy_static::lazy_static! {
@@ -132,6 +133,18 @@ impl EventHandler for Handler {
                         if count_of_members == 1 {
                             let manager = songbird::get(&ctx).await.unwrap();
 
+                            if let Some(handler_lock) = manager.get(guild_id) {
+                                let data = ctx.data.read().await;
+                                let author_container_lock =
+                                    data.get::<SongAuthorContainer>().unwrap().clone();
+
+                                remove_entries_from_author_container(
+                                    handler_lock,
+                                    author_container_lock,
+                                )
+                                .await;
+                            }
+
                             let _ = manager.remove(guild_id).await;
                         }
                     }
@@ -189,15 +202,26 @@ impl EventHandler for Handler {
             return;
         }
 
+        let guild_id = new.guild_id.unwrap();
+
         if new.channel_id.is_none() {
             let manager = songbird::get(&ctx).await.unwrap();
 
             if let Some(old) = old {
                 if old.channel_id.is_some() {
-                    let _ = manager.remove(new.guild_id.unwrap()).await;
+                    if let Some(handler_lock) = manager.get(guild_id) {
+                        let data = ctx.data.read().await;
+                        let author_container_lock =
+                            data.get::<SongAuthorContainer>().unwrap().clone();
+
+                        remove_entries_from_author_container(handler_lock, author_container_lock)
+                            .await;
+                    }
+
+                    let _ = manager.remove(guild_id).await;
                 }
             } else {
-                let _ = manager.remove(new.guild_id.unwrap()).await;
+                let _ = manager.remove(guild_id).await;
             }
         }
     }

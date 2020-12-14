@@ -1,13 +1,12 @@
 use serenity::{async_trait, http::Http, model::prelude::*, prelude::*};
 use songbird::{Call, Event, EventContext, EventHandler as VoiceEventHandler};
 
-use std::{
-    collections::HashMap,
-    sync::{
-        atomic::{AtomicUsize, Ordering},
-        Arc,
-    },
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc,
 };
+
+use crate::util::AuthorContainerLock;
 
 pub struct TrackStartNotifier {
     pub chan_id: ChannelId,
@@ -39,7 +38,7 @@ impl VoiceEventHandler for TrackStartNotifier {
 }
 
 pub struct RemoveFromAuthorMap {
-    pub map: Arc<RwLock<HashMap<uuid::Uuid, UserId>>>,
+    pub map: AuthorContainerLock,
 }
 
 #[async_trait]
@@ -49,6 +48,7 @@ impl VoiceEventHandler for RemoveFromAuthorMap {
             let uuid = handle.uuid();
             let mut map = self.map.write().await;
             map.remove(&uuid);
+            tracing::error!("{:?}", map);
         }
 
         None

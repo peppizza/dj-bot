@@ -1,6 +1,8 @@
-use serenity::{client::bridge::gateway::ShardManager, model::prelude::*, prelude::*};
+use serenity::{client::bridge::gateway::ShardManager, prelude::*};
 use sqlx::PgPool;
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
+
+use crate::util::AuthorContainerLock;
 
 pub struct ShardManagerContainer;
 impl TypeMapKey for ShardManagerContainer {
@@ -10,7 +12,7 @@ impl TypeMapKey for ShardManagerContainer {
 pub struct SongAuthorContainer;
 
 impl TypeMapKey for SongAuthorContainer {
-    type Value = Arc<RwLock<HashMap<uuid::Uuid, UserId>>>;
+    type Value = AuthorContainerLock;
 }
 
 pub struct PoolContainer;
