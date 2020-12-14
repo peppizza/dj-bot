@@ -1,7 +1,6 @@
 pub mod db_testing;
 pub mod help;
 pub mod join;
-pub mod leave;
 pub mod loop_command;
 pub mod lyrics;
 pub mod mute;

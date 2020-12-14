@@ -7,8 +7,9 @@ use serenity::{
 use crate::{checks::*, data::SongAuthorContainer};
 
 #[command]
-#[checks(dj_only)]
+#[checks(not_blacklisted)]
 #[description = "Stops the currently playing track, and clears the queue"]
+#[aliases("leave", "die")]
 async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

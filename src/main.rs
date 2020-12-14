@@ -36,12 +36,10 @@ use std::{
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{
-    db_testing::*, help::*, join::*, leave::*, loop_command::*, lyrics::*, mute::*, now_playing::*,
-    pause::*, ping::*, play::*, queue::*, remove::*, restart::*, resume::*, shuffle::*, skip::*,
+    db_testing::*, help::*, join::*, loop_command::*, lyrics::*, mute::*, now_playing::*, pause::*,
+    perms::*, ping::*, play::*, queue::*, remove::*, restart::*, resume::*, shuffle::*, skip::*,
     stop::*, volume::*,
 };
-
-use commands::perms::*;
 
 use data::*;
 use events::Handler;
@@ -50,7 +48,6 @@ use events::Handler;
 #[commands(
     ping,
     join,
-    leave,
     mute,
     play,
     skip,
