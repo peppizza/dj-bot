@@ -72,7 +72,10 @@ impl VoiceEventHandler for ChannelIdleChecker {
             if (self.elapsed.fetch_add(1, Ordering::Relaxed) + 1) > 5 {
                 let guild = match self.cache.guild(self.guild_id).await {
                     Some(guild) => guild,
-                    None => return Some(Event::Cancel),
+                    None => {
+                        let _ = handler.leave().await;
+                        return Some(Event::Cancel);
+                    }
                 };
 
                 if guild
