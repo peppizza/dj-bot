@@ -24,7 +24,7 @@ async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
 
         msg.channel_id.say(ctx, "Cleared queue").await?;
     } else {
-        msg.channel_id.say(ctx, "Not in a voice channel").await?;
+        msg.reply_ping(ctx, "Not in a voice channel").await?;
     }
 
     Ok(())
