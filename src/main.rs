@@ -1,9 +1,11 @@
 mod checks;
 mod commands;
 mod consts;
+mod data;
 mod db;
+mod events;
 mod lyrics_api;
-mod state;
+mod voice_events;
 
 use serenity::{
     client::bridge::gateway::GatewayIntents,
@@ -41,7 +43,8 @@ use commands::{
 
 use commands::perms::*;
 
-use state::*;
+use data::*;
+use events::Handler;
 
 #[group]
 #[commands(

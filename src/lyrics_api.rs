@@ -1,7 +1,7 @@
 use reqwest::StatusCode;
 use serenity::client::Context;
 
-use crate::state::ReqwestClientContainer;
+use crate::data::ReqwestClientContainer;
 
 use serde::Deserialize;
 

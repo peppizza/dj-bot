@@ -12,8 +12,8 @@ use serenity::{
 
 use crate::{
     consts::INSUFFICIENT_PERMISSIONS_MESSAGE,
+    data::PoolContainer,
     db::{delete_user, get_all_users_with_perm, get_user_perms, set_user_perms, UserPerm},
-    state::PoolContainer,
 };
 
 async fn args_to_user(

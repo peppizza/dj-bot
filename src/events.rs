@@ -1,19 +1,17 @@
-use serenity::{
-    async_trait, client::bridge::gateway::ShardManager, http::Http, model::prelude::*, prelude::*,
-};
-use songbird::{Call, Event, EventContext, EventHandler as VoiceEventHandler};
-use sqlx::PgPool;
+use serenity::{async_trait, model::prelude::*, prelude::*};
 use std::{
-    collections::HashMap,
     sync::{
-        atomic::{AtomicBool, AtomicUsize, Ordering},
+        atomic::{AtomicBool, Ordering},
         Arc,
     },
     time::Duration,
 };
 use tracing::{debug, error, info};
 
-use crate::db::{delete_guild, delete_user};
+use crate::{
+    data::{PoolContainer, ReqwestClientContainer},
+    db::{delete_guild, delete_user},
+};
 
 lazy_static::lazy_static! {
     static ref DBL_API_KEY: String = std::env::var("DBL_API_KEY").expect("Expected DBL_API_KEY in dotenv file");
@@ -202,106 +200,5 @@ impl EventHandler for Handler {
                 let _ = manager.remove(new.guild_id.unwrap()).await;
             }
         }
-    }
-}
-
-pub struct ShardManagerContainer;
-impl TypeMapKey for ShardManagerContainer {
-    type Value = Arc<Mutex<ShardManager>>;
-}
-
-pub struct SongAuthorContainer;
-
-impl TypeMapKey for SongAuthorContainer {
-    type Value = Arc<RwLock<HashMap<uuid::Uuid, UserId>>>;
-}
-
-pub struct PoolContainer;
-
-impl TypeMapKey for PoolContainer {
-    type Value = PgPool;
-}
-
-pub struct ReqwestClientContainer;
-
-impl TypeMapKey for ReqwestClientContainer {
-    type Value = reqwest::Client;
-}
-
-pub struct TrackStartNotifier {
-    pub chan_id: ChannelId,
-    pub http: Arc<Http>,
-}
-
-#[async_trait]
-impl VoiceEventHandler for TrackStartNotifier {
-    async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
-        if let EventContext::Track(&[(_, handle)]) = ctx {
-            let metadata = handle.metadata();
-            let title = metadata.title.clone().unwrap_or_default();
-            let url = metadata.source_url.clone().unwrap_or_default();
-            let _ = self
-                .chan_id
-                .send_message(&self.http, |m| {
-                    m.embed(|e| {
-                        e.title("Now playing");
-                        e.description(format!("[{}]({})", title, url));
-
-                        e
-                    })
-                })
-                .await;
-        }
-
-        None
-    }
-}
-
-pub struct RemoveFromAuthorMap {
-    pub map: Arc<RwLock<HashMap<uuid::Uuid, UserId>>>,
-}
-
-#[async_trait]
-impl VoiceEventHandler for RemoveFromAuthorMap {
-    async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
-        if let EventContext::Track(&[(_, handle)]) = ctx {
-            let uuid = handle.uuid();
-            let mut map = self.map.write().await;
-            map.remove(&uuid);
-        }
-
-        None
-    }
-}
-
-pub struct ChannelIdleChecker {
-    pub handler_lock: Arc<Mutex<Call>>,
-    pub elapsed: Arc<AtomicUsize>,
-    pub chan_id: ChannelId,
-    pub http: Arc<Http>,
-}
-
-#[async_trait]
-impl VoiceEventHandler for ChannelIdleChecker {
-    async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
-        let mut handler = self.handler_lock.lock().await;
-        if handler.queue().is_empty() {
-            if (self.elapsed.fetch_add(1, Ordering::Relaxed) + 1) > 5 {
-                let _ = handler.leave().await;
-                let _ = self
-                    .chan_id
-                    .say(
-                        &self.http,
-                        "I left the voice channel because I was inactive for too long",
-                    )
-                    .await;
-
-                return Some(Event::Cancel);
-            }
-        } else {
-            self.elapsed.store(0, Ordering::Relaxed);
-        }
-
-        None
     }
 }

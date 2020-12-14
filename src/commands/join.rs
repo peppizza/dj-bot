@@ -9,7 +9,8 @@ use songbird::{Event, TrackEvent};
 
 use crate::{
     checks::*,
-    state::{ChannelIdleChecker, RemoveFromAuthorMap, SongAuthorContainer},
+    data::SongAuthorContainer,
+    voice_events::{ChannelIdleChecker, RemoveFromAuthorMap},
 };
 
 #[command]

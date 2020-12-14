@@ -5,8 +5,8 @@ use serenity::{
 };
 
 use crate::{
+    data::PoolContainer,
     db::{delete_guild, delete_user, get_all_users_with_perm, get_user_perms, set_user_perms},
-    state::PoolContainer,
 };
 
 #[command]

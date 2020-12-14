@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::{checks::*, state::SongAuthorContainer};
+use crate::{checks::*, data::SongAuthorContainer};
 
 #[command]
 #[checks(not_blacklisted)]
