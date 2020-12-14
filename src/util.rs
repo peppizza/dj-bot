@@ -9,8 +9,6 @@ pub async fn remove_entries_from_author_container(
     handler_lock: Arc<Mutex<Call>>,
     author_container_lock: AuthorContainerLock,
 ) {
-    tracing::error!("good");
-
     let handler = handler_lock.lock().await;
     let queue = handler.queue();
 
@@ -21,8 +19,6 @@ pub async fn remove_entries_from_author_container(
         for track in current_queue {
             author_container.remove(&track.uuid());
         }
-
-        tracing::error!("{:?}", author_container);
     }
 
     queue.stop();

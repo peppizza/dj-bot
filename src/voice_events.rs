@@ -48,7 +48,6 @@ impl VoiceEventHandler for RemoveFromAuthorMap {
             let uuid = handle.uuid();
             let mut map = self.map.write().await;
             map.remove(&uuid);
-            tracing::error!("{:?}", map);
         }
 
         None

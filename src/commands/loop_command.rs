@@ -21,15 +21,11 @@ async fn loop_command(ctx: &Context, msg: &Message) -> CommandResult {
 
         if let Some(handle) = queue.current() {
             if let LoopState::Infinite = handle.get_info().await?.loops {
-                if let Err(why) = handle.disable_loop() {
-                    tracing::error!("{:?}, {}", why, why);
-                }
+                handle.disable_loop()?;
 
                 msg.channel_id.say(ctx, "Disabled loop").await?;
             } else {
-                if let Err(why) = handle.enable_loop() {
-                    tracing::error!("{:?}, {}", why, why);
-                }
+                handle.enable_loop()?;
 
                 msg.channel_id.say(ctx, "Enabled loop").await?;
             }
