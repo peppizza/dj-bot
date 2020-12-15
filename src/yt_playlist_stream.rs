@@ -1,14 +1,12 @@
 use std::fmt::Formatter;
 
-use async_stream::try_stream;
-
 use serde::Deserialize;
-use songbird::input::{error::Result, Input, Restartable};
-use tokio::{process::Command, stream::Stream};
+
+use tokio::process::Command;
 
 #[derive(Debug, Deserialize)]
 pub struct PlayListResponse {
-    url: String,
+    pub url: String,
 }
 
 #[derive(Debug)]
@@ -28,16 +26,6 @@ impl std::fmt::Display for PlayListError {
 }
 
 impl std::error::Error for PlayListError {}
-
-pub fn download_playlist(urls: Vec<PlayListResponse>) -> impl Stream<Item = Result<Input>> {
-    try_stream! {
-        for url in urls {
-            let source = Restartable::ytdl(url.url).await?;
-            let source = Input::from(source);
-            yield source
-        }
-    }
-}
 
 pub async fn get_list_of_urls(url: String) -> anyhow::Result<Vec<PlayListResponse>> {
     let output = Command::new("youtube-dl")

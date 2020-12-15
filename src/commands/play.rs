@@ -1,6 +1,5 @@
 use std::time::Duration;
 
-use futures_util::{pin_mut, StreamExt};
 use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
     model::prelude::*,
@@ -15,7 +14,7 @@ use tracing::error;
 use crate::{
     checks::*,
     voice_events::{ChannelIdleChecker, TrackStartNotifier},
-    yt_playlist_stream::{download_playlist, get_list_of_urls},
+    yt_playlist_stream::get_list_of_urls,
 };
 
 #[command]
@@ -102,14 +101,12 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 .await?;
 
             let urls = get_list_of_urls(url).await?;
-            let stream = download_playlist(urls);
-            let stream = stream.enumerate();
 
-            pin_mut!(stream);
+            for url in urls {
+                let input = Restartable::ytdl(url.url.clone()).await;
 
-            while let Some((idx, input)) = stream.next().await {
                 let input = match input {
-                    Ok(i) => i,
+                    Ok(i) => songbird::input::Input::from(i),
                     Err(e) => {
                         error!("Error starting source: {:?}", e);
 
@@ -135,7 +132,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
                 let (track, handle) = songbird::create_player(input);
 
-                if idx != 0 {
+                if !handler.queue().is_empty() {
                     handle.add_event(
                         Event::Delayed(Duration::from_millis(5)),
                         TrackStartNotifier {
@@ -146,13 +143,13 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 }
 
                 handler.enqueue(track);
-
-                reply_msg
-                    .edit(ctx, |m| {
-                        m.embed(|e| e.title("Finished downloading playlist"))
-                    })
-                    .await?;
             }
+
+            reply_msg
+                .edit(ctx, |m| {
+                    m.embed(|e| e.title("Finished downloading playlist"))
+                })
+                .await?;
 
             return Ok(());
         } else {

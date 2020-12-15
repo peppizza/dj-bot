@@ -34,8 +34,8 @@ use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{
     db_testing::*, help::*, join::*, loop_command::*, lyrics::*, mute::*, now_playing::*, pause::*,
-    perms::*, ping::*, play::*, playlist_testing::*, queue::*, remove::*, restart::*, resume::*,
-    shuffle::*, skip::*, stop::*, volume::*,
+    perms::*, ping::*, play::*, queue::*, remove::*, restart::*, resume::*, shuffle::*, skip::*,
+    stop::*, volume::*,
 };
 
 use data::*;
@@ -69,9 +69,7 @@ struct General;
     set_author_perms,
     get_perms_in_guild,
     delete_author,
-    delete_current_guild,
-    list_of_urls,
-    stream_playlist
+    delete_current_guild
 )]
 struct Owner;
 
