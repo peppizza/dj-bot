@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::{checks::*, data::SongAuthorContainer, util::remove_entries_from_author_container};
+use crate::checks::*;
 
 #[command]
 #[checks(not_blacklisted)]
@@ -16,10 +16,6 @@ async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
     let manager = songbird::get(ctx).await.unwrap().clone();
 
     if let Some(handler_lock) = manager.get(guild_id) {
-        let data = ctx.data.read().await;
-        let author_container_lock = data.get::<SongAuthorContainer>().unwrap().clone();
-        remove_entries_from_author_container(handler_lock, author_container_lock).await;
-
         manager.remove(guild_id).await?;
 
         msg.channel_id.say(ctx, "Cleared queue").await?;

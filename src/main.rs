@@ -5,7 +5,6 @@ mod data;
 mod db;
 mod events;
 mod lyrics_api;
-mod util;
 mod voice_events;
 mod yt_playlist_stream;
 
@@ -29,11 +28,7 @@ use songbird::SerenityInit;
 use sqlx::PgPool;
 use tracing::{info, warn};
 
-use std::{
-    collections::{HashMap, HashSet},
-    env,
-    sync::Arc,
-};
+use std::{collections::HashSet, env};
 
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
@@ -173,7 +168,6 @@ async fn main() -> anyhow::Result<()> {
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
-        data.insert::<SongAuthorContainer>(Arc::new(RwLock::new(HashMap::new())));
         data.insert::<PoolContainer>(pool);
         data.insert::<ReqwestClientContainer>(reqwest_client);
     }

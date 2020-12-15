@@ -6,8 +6,6 @@ use std::sync::{
     Arc,
 };
 
-use crate::util::AuthorContainerLock;
-
 pub struct TrackStartNotifier {
     pub chan_id: ChannelId,
     pub http: Arc<Http>,
@@ -31,23 +29,6 @@ impl VoiceEventHandler for TrackStartNotifier {
                     })
                 })
                 .await;
-        }
-
-        None
-    }
-}
-
-pub struct RemoveFromAuthorMap {
-    pub map: AuthorContainerLock,
-}
-
-#[async_trait]
-impl VoiceEventHandler for RemoveFromAuthorMap {
-    async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
-        if let EventContext::Track(&[(_, handle)]) = ctx {
-            let uuid = handle.uuid();
-            let mut map = self.map.write().await;
-            map.remove(&uuid);
         }
 
         None

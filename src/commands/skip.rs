@@ -7,7 +7,7 @@ use serenity::{
 use crate::checks::*;
 
 #[command]
-#[checks(author_or_dj)]
+#[checks(dj_only)]
 #[description = "Skips the currently playing track"]
 async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();

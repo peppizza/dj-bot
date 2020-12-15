@@ -8,7 +8,7 @@ use serenity::{
 
 use crate::{
     consts::INSUFFICIENT_PERMISSIONS_MESSAGE,
-    data::{PoolContainer, SongAuthorContainer},
+    data::PoolContainer,
     db::{get_user_perms, UserPerm},
 };
 
@@ -49,26 +49,6 @@ async fn dj_only(
     } else {
         check_if_already_playing(ctx, msg).await?;
         map_check_result(allow_only_dj(ctx, msg).await)
-    }
-}
-
-#[check]
-#[name = "author_or_dj"]
-async fn author_or_dj(
-    ctx: &Context,
-    msg: &Message,
-    _: &mut Args,
-    _: &CommandOptions,
-) -> StdResult<(), Reason> {
-    let guild = msg.guild(ctx).await.unwrap();
-    if check_if_administrator(ctx, guild, msg.author.id)
-        .await
-        .is_ok()
-    {
-        Ok(())
-    } else {
-        check_if_already_playing(ctx, msg).await?;
-        map_check_result(allow_author_or_dj(ctx, msg).await)
     }
 }
 
@@ -163,50 +143,5 @@ async fn allow_only_dj(ctx: &Context, msg: &Message) -> anyhow::Result<()> {
         Ok(())
     } else {
         Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()).into())
-    }
-}
-
-async fn allow_author_or_dj(ctx: &Context, msg: &Message) -> anyhow::Result<()> {
-    let guild_id = msg.guild_id.unwrap();
-
-    let manager = songbird::get(ctx).await.unwrap().clone();
-
-    if let Some(handler_lock) = manager.get(guild_id) {
-        let handler = handler_lock.lock().await;
-        let queue = handler.queue();
-
-        if let Some(handle) = queue.current() {
-            let data = ctx.data.read().await;
-            let author_container_lock = data.get::<SongAuthorContainer>().unwrap().clone();
-            let author_container = author_container_lock.read().await;
-            let author = author_container.get(&handle.uuid()).unwrap();
-
-            if msg.author.id == *author {
-                Ok(())
-            } else {
-                let pool = data.get::<PoolContainer>().unwrap();
-                let user_perm =
-                    match get_user_perms(pool, guild_id.into(), msg.author.id.try_into().unwrap())
-                        .await?
-                    {
-                        Some(perm) => perm,
-                        None => {
-                            return Err(
-                                Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()).into()
-                            )
-                        }
-                    };
-
-                if user_perm >= UserPerm::DJ {
-                    Ok(())
-                } else {
-                    Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()).into())
-                }
-            }
-        } else {
-            Err(Reason::User("There is no track currently playing".to_string()).into())
-        }
-    } else {
-        Err(Reason::User("You are not in a voice channel".to_string()).into())
     }
 }

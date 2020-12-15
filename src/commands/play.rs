@@ -8,14 +8,13 @@ use serenity::{
     utils::Color,
 };
 
-use songbird::{input::Restartable, Event, TrackEvent};
+use songbird::{input::Restartable, Event};
 
 use tracing::error;
 
 use crate::{
     checks::*,
-    data::SongAuthorContainer,
-    voice_events::{ChannelIdleChecker, RemoveFromAuthorMap, TrackStartNotifier},
+    voice_events::{ChannelIdleChecker, TrackStartNotifier},
     yt_playlist_stream::{download_playlist, get_list_of_urls},
 };
 
@@ -81,12 +80,6 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     },
                 );
 
-                let data = ctx.data.read().await;
-                let map = data.get::<SongAuthorContainer>().unwrap().clone();
-
-                handler
-                    .add_global_event(Event::Track(TrackEvent::End), RemoveFromAuthorMap { map });
-
                 msg.channel_id
                     .say(ctx, format!("Joined {}", connect_to.mention()))
                     .await?;
@@ -150,16 +143,6 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                             http: ctx.http.clone(),
                         },
                     )?;
-                }
-
-                let uuid = track.uuid();
-
-                {
-                    let data = ctx.data.read().await;
-                    let author_container_lock = data.get::<SongAuthorContainer>().unwrap().clone();
-                    let mut author_container = author_container_lock.write().await;
-
-                    author_container.insert(uuid, msg.author.id);
                 }
 
                 handler.enqueue(track);
@@ -247,16 +230,6 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 http: send_http,
             },
         )?;
-    }
-
-    let uuid = track.uuid();
-
-    {
-        let data = ctx.data.read().await;
-        let author_container_lock = data.get::<SongAuthorContainer>().unwrap().clone();
-        let mut author_container = author_container_lock.write().await;
-
-        author_container.insert(uuid, msg.author.id);
     }
 
     handler.enqueue(track);
