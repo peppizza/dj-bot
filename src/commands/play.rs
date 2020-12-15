@@ -142,6 +142,17 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     )?;
                 }
 
+                let guild = msg.guild(ctx).await.unwrap();
+
+                if guild
+                    .voice_states
+                    .get(&ctx.cache.current_user_id().await)
+                    .is_none()
+                {
+                    drop(track);
+                    drop(handle);
+                    break;
+                }
                 handler.enqueue(track);
             }
 
