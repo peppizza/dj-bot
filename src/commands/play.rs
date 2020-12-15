@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use futures_util::{pin_mut, StreamExt};
 use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
     model::prelude::*,
@@ -15,6 +16,7 @@ use crate::{
     checks::*,
     data::SongAuthorContainer,
     voice_events::{ChannelIdleChecker, RemoveFromAuthorMap, TrackStartNotifier},
+    yt_playlist_stream::{download_playlist, get_list_of_urls},
 };
 
 #[command]
@@ -100,27 +102,99 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     };
 
     let (source, mut reply_msg) = if url.starts_with("http") {
-        let mut reply_msg = msg
-            .channel_id
-            .send_message(ctx, |m| m.embed(|e| e.title("Downloading song...")))
-            .await?;
+        if url.contains("list=") {
+            let mut reply_msg = msg
+                .channel_id
+                .send_message(ctx, |m| m.embed(|e| e.title("Downloading playlist...")))
+                .await?;
 
-        let source = match Restartable::ytdl(url).await {
-            Ok(source) => source,
-            Err(why) => {
-                error!("Err starting source: {:?}", why);
+            let urls = get_list_of_urls(url).await?;
+            let stream = download_playlist(urls);
+            let stream = stream.enumerate();
+
+            pin_mut!(stream);
+
+            while let Some((idx, input)) = stream.next().await {
+                let input = match input {
+                    Ok(i) => i,
+                    Err(e) => {
+                        error!("Error starting source: {:?}", e);
+
+                        reply_msg
+                            .edit(ctx, |m| {
+                                m.embed(|e| {
+                                    e.title(
+                                        "There was a problem downloading a song in the playlist",
+                                    );
+
+                                    e.color(Color::DARK_RED);
+
+                                    e
+                                })
+                            })
+                            .await?;
+
+                        return Ok(());
+                    }
+                };
+
+                let mut handler = handler_lock.lock().await;
+
+                let (track, handle) = songbird::create_player(input);
+
+                if idx != 0 {
+                    handle.add_event(
+                        Event::Delayed(Duration::from_millis(5)),
+                        TrackStartNotifier {
+                            chan_id: msg.channel_id,
+                            http: ctx.http.clone(),
+                        },
+                    )?;
+                }
+
+                let uuid = track.uuid();
+
+                {
+                    let data = ctx.data.read().await;
+                    let author_container_lock = data.get::<SongAuthorContainer>().unwrap().clone();
+                    let mut author_container = author_container_lock.write().await;
+
+                    author_container.insert(uuid, msg.author.id);
+                }
+
+                handler.enqueue(track);
 
                 reply_msg
                     .edit(ctx, |m| {
-                        m.content("There was a problem downloading the song")
+                        m.embed(|e| e.title("Finished downloading playlist"))
                     })
                     .await?;
-
-                return Ok(());
             }
-        };
 
-        (source, reply_msg)
+            return Ok(());
+        } else {
+            let mut reply_msg = msg
+                .channel_id
+                .send_message(ctx, |m| m.embed(|e| e.title("Downloading song...")))
+                .await?;
+
+            let source = match Restartable::ytdl(url).await {
+                Ok(source) => source,
+                Err(why) => {
+                    error!("Err starting source: {:?}", why);
+
+                    reply_msg
+                        .edit(ctx, |m| {
+                            m.content("There was a problem downloading the song")
+                        })
+                        .await?;
+
+                    return Ok(());
+                }
+            };
+
+            (source, reply_msg)
+        }
     } else {
         let mut reply_msg = msg
             .channel_id
