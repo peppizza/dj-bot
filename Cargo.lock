@@ -360,7 +360,6 @@ dependencies = [
  "tracing-futures",
  "tracing-subscriber",
  "uuid",
- "youtube_dl",
 ]
 
 [[package]]
@@ -2525,16 +2524,6 @@ dependencies = [
  "salsa20",
  "subtle",
  "zeroize",
-]
-
-[[package]]
-name = "youtube_dl"
-version = "0.5.0"
-source = "git+https://github.com/saanuregh/youtube-dl-rs?branch=async#6d733b20a9ff9f0cae73b215e9890e5c39dc2b4c"
-dependencies = [
- "serde",
- "serde_json",
- "tokio",
 ]
 
 [[package]]
