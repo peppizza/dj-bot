@@ -15,7 +15,13 @@ async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
 
     let manager = songbird::get(ctx).await.unwrap().clone();
 
-    if manager.get(guild_id).is_some() {
+    if let Some(handler_lock) = manager.get(guild_id) {
+        {
+            let handler = handler_lock.lock().await;
+
+            handler.queue().stop();
+        }
+
         manager.remove(guild_id).await?;
 
         msg.channel_id.say(ctx, "Cleared queue").await?;

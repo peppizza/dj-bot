@@ -132,7 +132,13 @@ impl EventHandler for Handler {
                         if count_of_members == 1 {
                             let manager = songbird::get(&ctx).await.unwrap();
 
-                            let _ = manager.remove(guild_id).await;
+                            if let Some(handler_lock) = manager.get(guild_id) {
+                                {
+                                    let handler = handler_lock.lock().await;
+                                    handler.queue().stop();
+                                }
+                                let _ = manager.remove(guild_id).await;
+                            }
                         }
                     }
 
@@ -196,9 +202,19 @@ impl EventHandler for Handler {
 
             if let Some(old) = old {
                 if old.channel_id.is_some() {
-                    let _ = manager.remove(guild_id).await;
+                    if let Some(handler_lock) = manager.get(guild_id) {
+                        {
+                            let handler = handler_lock.lock().await;
+                            handler.queue().stop();
+                        }
+                        let _ = manager.remove(guild_id).await;
+                    }
                 }
-            } else {
+            } else if let Some(handler_lock) = manager.get(guild_id) {
+                {
+                    let handler = handler_lock.lock().await;
+                    handler.queue().stop();
+                }
                 let _ = manager.remove(guild_id).await;
             }
         }
