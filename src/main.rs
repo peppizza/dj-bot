@@ -33,9 +33,9 @@ use std::{collections::HashSet, env};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{
-    db_testing::*, help::*, join::*, loop_command::*, lyrics::*, mute::*, now_playing::*, pause::*,
-    perms::*, ping::*, play::*, queue::*, remove::*, restart::*, resume::*, shuffle::*, skip::*,
-    stop::*, volume::*,
+    db_testing::*, dj_only::*, help::*, join::*, loop_command::*, lyrics::*, mute::*,
+    now_playing::*, pause::*, perms::*, ping::*, play::*, queue::*, remove::*, restart::*,
+    resume::*, shuffle::*, skip::*, stop::*, volume::*,
 };
 
 use data::*;
@@ -74,7 +74,7 @@ struct General;
 struct Owner;
 
 #[group]
-#[commands(perms)]
+#[commands(perms, dj_only)]
 struct Moderation;
 
 #[hook]
@@ -122,8 +122,6 @@ async fn main() -> anyhow::Result<()> {
 
     let pool = PgPool::connect(&env::var("DATABASE_URL")?).await?;
 
-    let reqwest_client = reqwest::Client::new();
-
     let token = env::var("DISCORD_TOKEN")?;
 
     let http = Http::new_with_token(&token);
@@ -167,7 +165,8 @@ async fn main() -> anyhow::Result<()> {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
         data.insert::<PoolContainer>(pool);
-        data.insert::<ReqwestClientContainer>(reqwest_client);
+        data.insert::<ReqwestClientContainer>(Default::default());
+        data.insert::<DjOnlyContainer>(Default::default());
     }
 
     let shard_manager = client.shard_manager.clone();

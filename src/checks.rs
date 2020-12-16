@@ -8,7 +8,7 @@ use serenity::{
 
 use crate::{
     consts::INSUFFICIENT_PERMISSIONS_MESSAGE,
-    data::PoolContainer,
+    data::{DjOnlyContainer, PoolContainer},
     db::{get_user_perms, UserPerm},
 };
 
@@ -44,11 +44,31 @@ async fn dj_only(
     if check_if_administrator(ctx, guild, msg.author.id)
         .await
         .is_ok()
+        || check_if_dj_only_mode(ctx, msg).await.is_ok()
     {
         Ok(())
     } else {
         check_if_already_playing(ctx, msg).await?;
         map_check_result(allow_only_dj(ctx, msg).await)
+    }
+}
+
+#[check]
+#[name = "admin_only"]
+async fn admin_only(
+    ctx: &Context,
+    msg: &Message,
+    _: &mut Args,
+    _: &CommandOptions,
+) -> StdResult<(), Reason> {
+    let guild = msg.guild(ctx).await.unwrap();
+    if check_if_administrator(ctx, guild, msg.author.id)
+        .await
+        .is_ok()
+    {
+        Ok(())
+    } else {
+        map_check_result(allow_only_admin(ctx, msg).await)
     }
 }
 
@@ -102,6 +122,28 @@ fn map_check_result(result: anyhow::Result<()>) -> StdResult<(), Reason> {
     }
 }
 
+async fn allow_only_admin(ctx: &Context, msg: &Message) -> anyhow::Result<()> {
+    let data = ctx.data.read().await;
+    let pool = data.get::<PoolContainer>().unwrap();
+
+    let user_perm = match get_user_perms(
+        pool,
+        msg.guild_id.unwrap().into(),
+        msg.author.id.try_into().unwrap(),
+    )
+    .await?
+    {
+        Some(perm) => perm,
+        None => return Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()).into()),
+    };
+
+    if user_perm == UserPerm::Admin {
+        Ok(())
+    } else {
+        Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()).into())
+    }
+}
+
 async fn allow_everyone_not_blacklisted(ctx: &Context, msg: &Message) -> anyhow::Result<()> {
     let data = ctx.data.read().await;
     let pool = data.get::<PoolContainer>().unwrap();
@@ -140,6 +182,18 @@ async fn allow_only_dj(ctx: &Context, msg: &Message) -> anyhow::Result<()> {
     };
 
     if user_perm >= UserPerm::DJ {
+        Ok(())
+    } else {
+        Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()).into())
+    }
+}
+
+async fn check_if_dj_only_mode(ctx: &Context, msg: &Message) -> anyhow::Result<()> {
+    let data = ctx.data.read().await;
+    let dj_only_container_lock = data.get::<DjOnlyContainer>().unwrap().clone();
+    let dj_only_container = dj_only_container_lock.read().await;
+    let guild_id = msg.guild_id.unwrap();
+    if !dj_only_container.contains(&guild_id) {
         Ok(())
     } else {
         Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()).into())

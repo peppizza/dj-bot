@@ -1,4 +1,5 @@
 pub mod db_testing;
+pub mod dj_only;
 pub mod help;
 pub mod join;
 pub mod loop_command;

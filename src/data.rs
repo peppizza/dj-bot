@@ -1,6 +1,6 @@
-use serenity::{client::bridge::gateway::ShardManager, prelude::*};
+use serenity::{client::bridge::gateway::ShardManager, model::id::GuildId, prelude::*};
 use sqlx::PgPool;
-use std::sync::Arc;
+use std::{collections::HashSet, sync::Arc};
 
 pub struct ShardManagerContainer;
 impl TypeMapKey for ShardManagerContainer {
@@ -17,4 +17,10 @@ pub struct ReqwestClientContainer;
 
 impl TypeMapKey for ReqwestClientContainer {
     type Value = reqwest::Client;
+}
+
+pub struct DjOnlyContainer;
+
+impl TypeMapKey for DjOnlyContainer {
+    type Value = Arc<RwLock<HashSet<GuildId>>>;
 }

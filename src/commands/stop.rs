@@ -7,7 +7,7 @@ use serenity::{
 use crate::checks::*;
 
 #[command]
-#[checks(not_blacklisted)]
+#[checks(dj_only)]
 #[description = "Stops the currently playing track, and clears the queue"]
 #[aliases("leave", "die")]
 async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
