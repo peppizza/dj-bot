@@ -151,6 +151,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 {
                     drop(track);
                     drop(handle);
+                    handler.queue().stop();
                     break;
                 }
                 handler.enqueue(track);
