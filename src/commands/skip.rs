@@ -9,6 +9,7 @@ use crate::checks::*;
 #[command]
 #[checks(dj_only)]
 #[description = "Skips the currently playing track"]
+#[bucket = "global"]
 async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

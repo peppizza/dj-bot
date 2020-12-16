@@ -9,6 +9,7 @@ use crate::{checks::*, data::DjOnlyContainer};
 #[command]
 #[checks(admin_only)]
 #[description = "Enables/Disables dj only mode"]
+#[bucket = "global"]
 async fn dj_only(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

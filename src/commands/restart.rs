@@ -11,6 +11,7 @@ use crate::checks::*;
 #[command]
 #[checks(dj_only)]
 #[description = "Restarts the currently playing track"]
+#[bucket = "global"]
 async fn restart(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

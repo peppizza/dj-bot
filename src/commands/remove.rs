@@ -10,6 +10,7 @@ use crate::checks::*;
 #[checks(dj_only)]
 #[description = "Removes a song from the queue, use ~queue to see what index to use"]
 #[usage = "<index of song to remove>"]
+#[bucket = "global"]
 async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
     let index = args.single_quoted::<usize>()?;

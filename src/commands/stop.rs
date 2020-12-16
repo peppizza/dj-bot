@@ -10,6 +10,7 @@ use crate::checks::*;
 #[checks(dj_only)]
 #[description = "Stops the currently playing track, and clears the queue"]
 #[aliases("leave", "die")]
+#[bucket = "global"]
 async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

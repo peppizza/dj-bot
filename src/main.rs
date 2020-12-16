@@ -13,6 +13,7 @@ use serenity::{
     framework::standard::Reason,
     framework::{
         standard::{
+            buckets::LimitedFor,
             macros::{group, hook},
             DispatchError,
         },
@@ -144,6 +145,8 @@ async fn main() -> anyhow::Result<()> {
                 .case_insensitivity(true)
         })
         .on_dispatch_error(dispatch_error)
+        .bucket("global", |b| b.delay(3).limit_for(LimitedFor::User))
+        .await
         .help(&MY_HELP)
         .group(&GENERAL_GROUP)
         .group(&MODERATION_GROUP)

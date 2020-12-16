@@ -12,6 +12,7 @@ use crate::{checks::*, voice_events::ChannelIdleChecker};
 #[command]
 #[checks(not_blacklisted)]
 #[description = "Makes the bot join the voice channel you are in"]
+#[bucket = "global"]
 async fn join(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     let guild_id = guild.id;

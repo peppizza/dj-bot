@@ -10,6 +10,7 @@ use crate::{checks::*, lyrics_api::get_lyrics};
 #[command]
 #[checks(not_blacklisted)]
 #[description = "Shows the lyrics to a song.  If no arguments are provided it will show the lyrics of the currently playing song"]
+#[bucket = "global"]
 async fn lyrics(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let name_of_song = match args.remains() {
         Some(name) => name.to_string(),

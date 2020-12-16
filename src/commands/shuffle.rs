@@ -37,6 +37,7 @@ impl<T> LenAndSwap for VecDeque<T> {
 #[command]
 #[checks(dj_only)]
 #[description = "Shuffles the queue without changing the currently playing song"]
+#[bucket = "global"]
 async fn shuffle(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 

@@ -12,6 +12,7 @@ use super::util::formatted_song_listing;
 #[aliases("np", "playing")]
 #[checks(not_blacklisted)]
 #[description = "Shows the currently playing track"]
+#[bucket = "global"]
 async fn now_playing(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
