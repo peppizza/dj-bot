@@ -6,6 +6,7 @@ use std::{
     },
     time::Duration,
 };
+use tokio::io::{self, AsyncBufReadExt};
 use tracing::{debug, error, info};
 
 use crate::{
@@ -177,6 +178,37 @@ impl EventHandler for Handler {
                         .await;
 
                     tokio::time::delay_for(Duration::from_secs(30 * 60)).await;
+                }
+            });
+
+            let ctx3 = Arc::clone(&ctx);
+
+            tokio::spawn(async move {
+                let ctx = Arc::clone(&ctx3);
+                let cache = ctx.cache.clone();
+
+                let stdin = io::stdin();
+                let stdin = io::BufReader::new(stdin);
+                let mut lines = stdin.lines();
+                while let Some(input) = lines.next_line().await.unwrap() {
+                    match input.to_lowercase().as_ref() {
+                        "guilds" => {
+                            println!("{}", cache.guild_count().await)
+                        }
+                        "playing" => {
+                            let guilds = cache.guilds().await;
+                            for guild_id in guilds {
+                                let guild = guild_id.to_guild_cached(&cache).await.unwrap();
+                                let bot_channel_id =
+                                    guild.voice_states.get(&cache.current_user_id().await);
+
+                                if let Some(bot_channel_id) = bot_channel_id {
+                                    println!("{:?}", bot_channel_id.guild_id);
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
                 }
             });
 
