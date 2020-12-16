@@ -149,8 +149,6 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     .get(&ctx.cache.current_user_id().await)
                     .is_none()
                 {
-                    drop(track);
-                    drop(handle);
                     handler.queue().stop();
                     break;
                 }
