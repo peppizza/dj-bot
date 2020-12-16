@@ -4,7 +4,11 @@ use serenity::{
     prelude::*,
 };
 
-use crate::{checks::*, data::DjOnlyContainer};
+use crate::{
+    checks::*,
+    data::DjOnlyContainer,
+    dj_only_store::{check_if_guild_in_store, delete_guild_from_store, insert_guild_into_store},
+};
 
 #[command]
 #[checks(admin_only)]
@@ -14,14 +18,13 @@ async fn dj_only(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
     let data = ctx.data.read().await;
-    let dj_only_container_lock = data.get::<DjOnlyContainer>().unwrap().clone();
-    let mut dj_only_container = dj_only_container_lock.write().await;
+    let redis_con = data.get::<DjOnlyContainer>().unwrap().clone();
 
-    if let Some(id) = dj_only_container.get(&guild_id).cloned() {
-        dj_only_container.remove(&id);
+    if check_if_guild_in_store(&redis_con, guild_id).await? {
+        delete_guild_from_store(&redis_con, guild_id).await?;
         msg.channel_id.say(ctx, "Disabled dj only mode").await?;
     } else {
-        dj_only_container.insert(guild_id);
+        insert_guild_into_store(&redis_con, guild_id).await?;
         msg.channel_id.say(ctx, "Enabled dj only mode").await?;
     }
 

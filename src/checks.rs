@@ -10,6 +10,7 @@ use crate::{
     consts::INSUFFICIENT_PERMISSIONS_MESSAGE,
     data::{DjOnlyContainer, PoolContainer},
     db::{get_user_perms, UserPerm},
+    dj_only_store::check_if_guild_in_store,
 };
 
 #[check]
@@ -190,10 +191,8 @@ async fn allow_only_dj(ctx: &Context, msg: &Message) -> anyhow::Result<()> {
 
 async fn check_if_dj_only_mode(ctx: &Context, msg: &Message) -> anyhow::Result<()> {
     let data = ctx.data.read().await;
-    let dj_only_container_lock = data.get::<DjOnlyContainer>().unwrap().clone();
-    let dj_only_container = dj_only_container_lock.read().await;
-    let guild_id = msg.guild_id.unwrap();
-    if !dj_only_container.contains(&guild_id) {
+    let redis_con = data.get::<DjOnlyContainer>().unwrap().clone();
+    if !check_if_guild_in_store(&redis_con, msg.guild_id.unwrap()).await? {
         Ok(())
     } else {
         Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()).into())

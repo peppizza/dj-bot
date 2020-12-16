@@ -3,6 +3,7 @@ mod commands;
 mod consts;
 mod data;
 mod db;
+mod dj_only_store;
 mod events;
 mod lyrics_api;
 mod voice_events;
@@ -123,6 +124,10 @@ async fn main() -> anyhow::Result<()> {
 
     let pool = PgPool::connect(&env::var("DATABASE_URL")?).await?;
 
+    let redis_client = redis::Client::open(env::var("REDIS_URL")?)?;
+
+    let redis_con = redis_client.get_multiplexed_tokio_connection().await?;
+
     let token = env::var("DISCORD_TOKEN")?;
 
     let http = Http::new_with_token(&token);
@@ -169,7 +174,7 @@ async fn main() -> anyhow::Result<()> {
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
         data.insert::<PoolContainer>(pool);
         data.insert::<ReqwestClientContainer>(Default::default());
-        data.insert::<DjOnlyContainer>(Default::default());
+        data.insert::<DjOnlyContainer>(redis_con);
     }
 
     let shard_manager = client.shard_manager.clone();

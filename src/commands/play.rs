@@ -19,7 +19,7 @@ use crate::{
 
 #[command]
 #[aliases("p")]
-#[checks(not_blacklisted)]
+#[checks(dj_only)]
 #[description = "Adds a new song to the queue, can either be the name of a song, or a link to it"]
 #[usage = "<name or url of song>"]
 #[bucket = "global"]
