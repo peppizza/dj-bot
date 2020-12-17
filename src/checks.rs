@@ -45,12 +45,15 @@ async fn dj_only(
     if check_if_administrator(ctx, guild, msg.author.id)
         .await
         .is_ok()
-        || check_if_dj_only_mode(ctx, msg).await.is_ok()
     {
         Ok(())
     } else {
         check_if_already_playing(ctx, msg).await?;
-        map_check_result(allow_only_dj(ctx, msg).await)
+        map_check_result(allow_everyone_not_blacklisted(ctx, msg).await)?;
+        match map_check_result(guild_has_dj_mode_enabled(ctx, msg).await) {
+            Ok(_) => Ok(()),
+            Err(_) => map_check_result(allow_only_dj(ctx, msg).await),
+        }
     }
 }
 
@@ -189,7 +192,7 @@ async fn allow_only_dj(ctx: &Context, msg: &Message) -> anyhow::Result<()> {
     }
 }
 
-async fn check_if_dj_only_mode(ctx: &Context, msg: &Message) -> anyhow::Result<()> {
+async fn guild_has_dj_mode_enabled(ctx: &Context, msg: &Message) -> anyhow::Result<()> {
     let data = ctx.data.read().await;
     let redis_con = data.get::<DjOnlyContainer>().unwrap().clone();
     if !check_if_guild_in_store(&redis_con, msg.guild_id.unwrap()).await? {
