@@ -162,6 +162,8 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 .strip_prefix("https://open.spotify.com/playlist/")
                 .unwrap();
 
+            let url = url.split('?').take(1).collect::<Vec<_>>()[0];
+
             let tracks = {
                 let data = ctx.data.read().await;
                 let client = data.get::<ReqwestClientContainer>().unwrap().clone();
