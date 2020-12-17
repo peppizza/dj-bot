@@ -13,8 +13,9 @@ use tracing::error;
 
 use crate::{
     checks::*,
+    data::ReqwestClientContainer,
+    playlists::{get_list_of_spotify_tracks, get_list_of_urls},
     voice_events::{ChannelIdleChecker, TrackStartNotifier},
-    yt_playlist_stream::get_list_of_urls,
 };
 
 #[command]
@@ -111,21 +112,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     Err(e) => {
                         error!("Error starting source: {:?}", e);
 
-                        reply_msg
-                            .edit(ctx, |m| {
-                                m.embed(|e| {
-                                    e.title(
-                                        "There was a problem downloading a song in the playlist",
-                                    );
-
-                                    e.color(Color::DARK_RED);
-
-                                    e
-                                })
-                            })
-                            .await?;
-
-                        return Ok(());
+                        continue;
                     }
                 };
 
@@ -159,6 +146,73 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             reply_msg
                 .edit(ctx, |m| {
                     m.embed(|e| e.title("Finished downloading playlist"))
+                })
+                .await?;
+
+            return Ok(());
+        } else if url.starts_with("https://open.spotify.com/playlist/") {
+            let mut reply_msg = msg
+                .channel_id
+                .send_message(ctx, |m| {
+                    m.embed(|e| e.title("Downloading spotify playlist..."))
+                })
+                .await?;
+
+            let url = url
+                .strip_prefix("https://open.spotify.com/playlist/")
+                .unwrap();
+
+            let tracks = {
+                let data = ctx.data.read().await;
+                let client = data.get::<ReqwestClientContainer>().unwrap().clone();
+                get_list_of_spotify_tracks(client, url).await?
+            };
+
+            for item in tracks.items {
+                let track = item.track;
+                let formatted_search = format!("{}{}", track.name, track.artists[0].name);
+
+                let input = Restartable::ytdl_search(&formatted_search).await;
+
+                let input = match input {
+                    Ok(i) => songbird::input::Input::from(i),
+                    Err(e) => {
+                        error!("Error starting source: {:?}", e);
+
+                        continue;
+                    }
+                };
+
+                let mut handler = handler_lock.lock().await;
+
+                let (track, handle) = songbird::create_player(input);
+
+                if !handler.queue().is_empty() {
+                    handle.add_event(
+                        Event::Delayed(Duration::from_millis(5)),
+                        TrackStartNotifier {
+                            chan_id: msg.channel_id,
+                            http: ctx.http.clone(),
+                        },
+                    )?;
+                }
+
+                let guild = msg.guild(ctx).await.unwrap();
+
+                if guild
+                    .voice_states
+                    .get(&ctx.cache.current_user_id().await)
+                    .is_none()
+                {
+                    handler.queue().stop();
+                    break;
+                }
+                handler.enqueue(track);
+            }
+
+            reply_msg
+                .edit(ctx, |m| {
+                    m.embed(|e| e.title("Finished downloading spotify playlist"))
                 })
                 .await?;
 

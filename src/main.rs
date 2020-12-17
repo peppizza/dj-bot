@@ -6,8 +6,8 @@ mod db;
 mod dj_only_store;
 mod events;
 mod lyrics_api;
+mod playlists;
 mod voice_events;
-mod yt_playlist_stream;
 
 use serenity::{
     client::bridge::gateway::GatewayIntents,
