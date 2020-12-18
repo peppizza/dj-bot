@@ -9,6 +9,7 @@ mod lyrics_api;
 mod playlists;
 mod voice_events;
 
+use db::get_guild_prefix;
 use serenity::{
     client::bridge::gateway::GatewayIntents,
     framework::standard::Reason,
@@ -23,6 +24,7 @@ use serenity::{
     http::Http,
     model::channel::Message,
     prelude::*,
+    FutureExt,
 };
 
 use songbird::SerenityInit;
@@ -36,8 +38,8 @@ use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{
     db_testing::*, dj_only::*, help::*, join::*, loop_command::*, lyrics::*, mute::*,
-    now_playing::*, pause::*, perms::*, ping::*, play::*, queue::*, remove::*, restart::*,
-    resume::*, shuffle::*, skip::*, stop::*, volume::*,
+    now_playing::*, pause::*, perms::*, ping::*, play::*, prefix::*, queue::*, remove::*,
+    restart::*, resume::*, shuffle::*, skip::*, stop::*, volume::*,
 };
 
 use data::*;
@@ -77,7 +79,7 @@ struct General;
 struct Owner;
 
 #[group]
-#[commands(perms, dj_only)]
+#[commands(perms, dj_only, prefix)]
 struct Moderation;
 
 #[hook]
@@ -146,7 +148,20 @@ async fn main() -> anyhow::Result<()> {
     let framework = StandardFramework::new()
         .configure(|c| {
             c.owners(owners)
-                .prefix("~")
+                .prefix("")
+                .dynamic_prefix(|ctx, msg| {
+                    async move {
+                        let data = ctx.data.read().await;
+                        let pool = data.get::<PoolContainer>().unwrap();
+                        let guild_id = msg.guild_id.unwrap();
+                        let prefix = get_guild_prefix(pool, guild_id.into())
+                            .await
+                            .ok()?
+                            .unwrap_or_else(|| "~".to_string());
+                        Some(prefix)
+                    }
+                    .boxed()
+                })
                 .allow_dm(false)
                 .case_insensitivity(true)
         })

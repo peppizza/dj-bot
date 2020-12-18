@@ -10,6 +10,7 @@ pub mod pause;
 pub mod perms;
 pub mod ping;
 pub mod play;
+pub mod prefix;
 pub mod queue;
 pub mod remove;
 pub mod restart;

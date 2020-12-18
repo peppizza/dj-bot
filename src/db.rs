@@ -181,3 +181,62 @@ pub async fn insert_guild(pool: &PgPool, guild_id: i64) -> anyhow::Result<PgDone
 
     Ok(rec)
 }
+
+#[derive(Debug)]
+pub struct GuildIdPrefix {
+    pub guild_id: i64,
+    pub prefix: String,
+}
+
+pub async fn set_guild_prefix(
+    pool: &PgPool,
+    guild_id: i64,
+    prefix: &str,
+) -> anyhow::Result<GuildIdPrefix> {
+    let rec = sqlx::query_as!(
+        GuildIdPrefix,
+        r#"
+        INSERT INTO prefixes (guild_id, prefix)
+        VALUES ($1, $2)
+        ON CONFLICT (guild_id)
+        DO UPDATE SET prefix = EXCLUDED.prefix
+        RETURNING guild_id, prefix"#,
+        guild_id,
+        prefix
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(rec)
+}
+
+pub async fn get_guild_prefix(pool: &PgPool, guild_id: i64) -> anyhow::Result<Option<String>> {
+    let rec = match sqlx::query!(
+        r#"
+        SELECT prefix
+        FROM prefixes
+        WHERE guild_id = $1"#,
+        guild_id
+    )
+    .fetch_optional(pool)
+    .await?
+    {
+        Some(rec) => rec,
+        None => return Ok(None),
+    };
+
+    Ok(Some(rec.prefix))
+}
+
+pub async fn delete_guild_prefix(pool: &PgPool, guild_id: i64) -> anyhow::Result<()> {
+    sqlx::query!(
+        r#"
+        DELETE FROM prefixes
+        WHERE guild_id = $1"#,
+        guild_id
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
