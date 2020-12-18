@@ -153,7 +153,7 @@ pub async fn delete_user(
 pub async fn delete_guild(pool: &PgPool, guild_id: i64) -> anyhow::Result<Option<i64>> {
     let rec = match sqlx::query!(
         r#"
-        DELETE FROM perms
+        DELETE FROM guilds
         WHERE guild_id = $1
         RETURNING guild_id"#,
         guild_id
@@ -166,4 +166,18 @@ pub async fn delete_guild(pool: &PgPool, guild_id: i64) -> anyhow::Result<Option
     };
 
     Ok(Some(rec.guild_id))
+}
+
+pub async fn insert_guild(pool: &PgPool, guild_id: i64) -> anyhow::Result<i64> {
+    let rec = sqlx::query!(
+        r#"
+        INSERT INTO guilds
+        VALUES ($1)
+        RETURNING guild_id"#,
+        guild_id
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(rec.guild_id)
 }

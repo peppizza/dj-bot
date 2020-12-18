@@ -71,7 +71,8 @@ struct General;
     set_author_perms,
     get_perms_in_guild,
     delete_author,
-    delete_current_guild
+    delete_current_guild,
+    insert_all_guilds
 )]
 struct Owner;
 

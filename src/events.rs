@@ -11,7 +11,7 @@ use tracing::{debug, error, info};
 
 use crate::{
     data::{PoolContainer, ReqwestClientContainer},
-    db::{delete_guild, delete_user},
+    db::{delete_guild, delete_user, insert_guild},
 };
 
 lazy_static::lazy_static! {
@@ -56,6 +56,22 @@ impl EventHandler for Handler {
                 }
                 Err(why) => error!("Could not remove db entries: {:?}", why),
             };
+        }
+    }
+
+    async fn guild_create(&self, ctx: Context, guild: Guild, is_new: bool) {
+        if is_new {
+            let guild_id = guild.id;
+            info!("Added to guild: {}", guild_id);
+            let data = ctx.data.read().await;
+            let pool = data.get::<PoolContainer>().unwrap();
+
+            match insert_guild(pool, guild_id.into()).await {
+                Ok(guild_id) => {
+                    info!("Added guild: {}", guild_id);
+                }
+                Err(why) => error!("Could not enter guild: {:?}", why),
+            }
         }
     }
 
