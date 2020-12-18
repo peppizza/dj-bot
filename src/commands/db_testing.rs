@@ -3,7 +3,6 @@ use serenity::{
     model::prelude::*,
     prelude::*,
 };
-use tracing::debug;
 
 use crate::{
     data::PoolContainer,
@@ -102,8 +101,8 @@ async fn insert_all_guilds(ctx: &Context, _msg: &Message) -> CommandResult {
     let pool = data.get::<PoolContainer>().unwrap();
 
     for guild_id in ctx.cache.guilds().await {
-        let val = insert_guild(pool, guild_id.into()).await?;
-        debug!(val);
+        let val = insert_guild(pool, guild_id.into()).await;
+        println!("{:?}", val);
     }
 
     Ok(())

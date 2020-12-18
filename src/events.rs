@@ -68,7 +68,7 @@ impl EventHandler for Handler {
 
             match insert_guild(pool, guild_id.into()).await {
                 Ok(guild_id) => {
-                    info!("Added guild: {}", guild_id);
+                    info!("Added guild: {:?}", guild_id);
                 }
                 Err(why) => error!("Could not enter guild: {:?}", why),
             }
