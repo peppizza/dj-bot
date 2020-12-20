@@ -42,6 +42,7 @@ pub struct ChannelIdleChecker {
     pub guild_id: GuildId,
     pub http: Arc<Http>,
     pub cache: Arc<Cache>,
+    pub voice_channel_id: ChannelId,
 }
 
 #[async_trait]
@@ -49,21 +50,18 @@ impl VoiceEventHandler for ChannelIdleChecker {
     async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
         let mut handler = self.handler_lock.lock().await;
 
+        tracing::error!("{}", handler.queue().is_empty());
+
+        let guild = self.cache.guild(self.guild_id).await.unwrap();
+
+        let bot_channel_id = guild.voice_states.get(&self.cache.current_user_id().await);
+
         if handler.queue().is_empty() {
             if (self.elapsed.fetch_add(1, Ordering::Relaxed) + 1) > 5 {
-                let guild = match self.cache.guild(self.guild_id).await {
-                    Some(guild) => guild,
-                    None => {
-                        let _ = handler.leave().await;
+                if let Some(state) = bot_channel_id {
+                    if self.voice_channel_id != state.channel_id.unwrap() {
                         return Some(Event::Cancel);
                     }
-                };
-
-                if guild
-                    .voice_states
-                    .get(&self.cache.current_user_id().await)
-                    .is_some()
-                {
                     let _ = handler.leave().await;
                     let _ = self
                         .chan_id

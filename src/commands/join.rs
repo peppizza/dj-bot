@@ -53,6 +53,7 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
                 guild_id,
                 http: ctx.http.clone(),
                 cache: ctx.cache.clone(),
+                voice_channel_id: connect_to,
             },
         );
 

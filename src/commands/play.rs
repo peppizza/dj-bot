@@ -70,7 +70,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             if success.is_ok() {
                 let mut handler = handler_lock.lock().await;
                 handler.add_global_event(
-                    Event::Periodic(Duration::from_secs(60), None),
+                    Event::Periodic(Duration::from_secs(1), None),
                     ChannelIdleChecker {
                         handler_lock: handler_lock.clone(),
                         elapsed: Default::default(),
@@ -78,6 +78,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                         chan_id: msg.channel_id,
                         http: ctx.http.clone(),
                         cache: ctx.cache.clone(),
+                        voice_channel_id: connect_to,
                     },
                 );
 
