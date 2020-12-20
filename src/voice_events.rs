@@ -50,8 +50,6 @@ impl VoiceEventHandler for ChannelIdleChecker {
     async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
         let mut handler = self.handler_lock.lock().await;
 
-        tracing::error!("{}", handler.queue().is_empty());
-
         let guild = self.cache.guild(self.guild_id).await.unwrap();
 
         let bot_channel_id = guild.voice_states.get(&self.cache.current_user_id().await);

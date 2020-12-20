@@ -256,7 +256,6 @@ impl EventHandler for Handler {
                             handler.queue().stop();
                         }
                         let _ = manager.remove(guild_id).await;
-                        tracing::error!("left");
                     }
                 }
             } else if let Some(handler_lock) = manager.get(guild_id) {
