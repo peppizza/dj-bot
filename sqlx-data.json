@@ -1,5 +1,52 @@
 {
   "db": "PostgreSQL",
+  "71b6cf7bb1f4b78b30c108b45282fa252020e9ae883e186f348aec31e6bf1834": {
+    "query": "\n        SELECT prefix\n        FROM prefixes\n        WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "prefix",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "7b94d91ef1b6f839a75106b9abaf77c04f38cc3f42c54c7e36c063df511b074e": {
+    "query": "\n        INSERT INTO prefixes (guild_id, prefix)\n        VALUES ($1, $2)\n        ON CONFLICT (guild_id)\n        DO UPDATE SET prefix = EXCLUDED.prefix\n        RETURNING guild_id, prefix",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "prefix",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Varchar"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
   "864b072ca652131559f8b94add9ea071cea4b3b8f94a44bc695abc9acea814df": {
     "query": "\n        INSERT INTO perms (guild_id, user_id, perm_level) VALUES ($1, $2, $3)\n        ON CONFLICT (guild_id, user_id)\n        DO UPDATE SET perm_level = EXCLUDED.perm_level\n        RETURNING perm_level\n        ",
     "describe": {
@@ -20,6 +67,18 @@
       "nullable": [
         false
       ]
+    }
+  },
+  "871c7dc038c719229928d1c12da0e29e801809e75f4776bfec5b7ba3c629cb59": {
+    "query": "\n        INSERT INTO guilds\n        VALUES ($1)\n        ON CONFLICT DO NOTHING",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
     }
   },
   "98572ef3d2044f313396a3da83ae4292ba661697fecb788a19371b102cd9b9ca": {
@@ -45,26 +104,6 @@
       },
       "nullable": [
         false,
-        false
-      ]
-    }
-  },
-  "ae04cdd7f14dc808786304fb9d170bd927b7e9f4a73eabd600b87f434a793173": {
-    "query": "\n        DELETE FROM perms\n        WHERE guild_id = $1\n        RETURNING guild_id",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "guild_id",
-          "type_info": "Int8"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      },
-      "nullable": [
         false
       ]
     }
@@ -113,6 +152,38 @@
       },
       "nullable": [
         false,
+        false
+      ]
+    }
+  },
+  "d305ea7d1fff7b194e6a4baebd629315e2362d398b9c4f8621bb8b7c8321b1ad": {
+    "query": "\n        DELETE FROM prefixes\n        WHERE guild_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "f81516d5968a2ea12ce592af55c91c9580f4b1cd07263c7edb35dd863a0f0c8e": {
+    "query": "\n        DELETE FROM guilds\n        WHERE guild_id = $1\n        RETURNING guild_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
         false
       ]
     }
