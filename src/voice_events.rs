@@ -53,8 +53,6 @@ impl VoiceEventHandler for ChannelIdleChecker {
     async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
         let mut handler = self.handler_lock.lock().await;
 
-        tracing::error!("running");
-
         if !self.is_loop_running.load(Ordering::Relaxed) {
             let channel = self.channel.clone();
             let should_stop = self.should_stop.clone();
