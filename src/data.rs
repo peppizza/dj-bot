@@ -1,7 +1,8 @@
+use flume::Sender;
 use redis::aio::MultiplexedConnection;
-use serenity::{client::bridge::gateway::ShardManager, prelude::*};
+use serenity::{client::bridge::gateway::ShardManager, model::id::GuildId, prelude::*};
 use sqlx::PgPool;
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 pub struct ShardManagerContainer;
 impl TypeMapKey for ShardManagerContainer {
@@ -24,4 +25,10 @@ pub struct DjOnlyContainer;
 
 impl TypeMapKey for DjOnlyContainer {
     type Value = MultiplexedConnection;
+}
+
+pub struct StopContainer;
+
+impl TypeMapKey for StopContainer {
+    type Value = Arc<Mutex<HashMap<GuildId, Sender<()>>>>;
 }

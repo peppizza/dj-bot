@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::checks::*;
+use crate::{checks::*, data::StopContainer};
 
 #[command]
 #[checks(dj_only)]
@@ -21,6 +21,14 @@ async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
             let handler = handler_lock.lock().await;
 
             handler.queue().stop();
+
+            let data = ctx.data.read().await;
+            let channel_container_lock = data.get::<StopContainer>().unwrap().clone();
+            let mut channel_container = channel_container_lock.lock().await;
+
+            let channel = channel_container.remove(&guild_id).unwrap();
+
+            channel.send_async(()).await.unwrap();
         }
 
         manager.remove(guild_id).await?;

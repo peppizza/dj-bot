@@ -1,8 +1,9 @@
+use flume::Receiver;
 use serenity::{async_trait, client::Cache, http::Http, model::prelude::*, prelude::*};
 use songbird::{Call, Event, EventContext, EventHandler as VoiceEventHandler};
 
 use std::sync::{
-    atomic::{AtomicUsize, Ordering},
+    atomic::{AtomicBool, AtomicUsize, Ordering},
     Arc,
 };
 
@@ -37,12 +38,14 @@ impl VoiceEventHandler for TrackStartNotifier {
 
 pub struct ChannelIdleChecker {
     pub handler_lock: Arc<Mutex<Call>>,
-    pub elapsed: Arc<AtomicUsize>,
+    pub elapsed: AtomicUsize,
     pub chan_id: ChannelId,
     pub guild_id: GuildId,
     pub http: Arc<Http>,
     pub cache: Arc<Cache>,
-    pub voice_channel_id: ChannelId,
+    pub channel: Receiver<()>,
+    pub is_loop_running: AtomicBool,
+    pub should_stop: Arc<AtomicBool>,
 }
 
 #[async_trait]
@@ -50,22 +53,31 @@ impl VoiceEventHandler for ChannelIdleChecker {
     async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
         let mut handler = self.handler_lock.lock().await;
 
-        let guild = self.cache.guild(self.guild_id).await.unwrap();
+        tracing::error!("running");
 
-        let bot_channel_id = guild.voice_states.get(&self.cache.current_user_id().await);
+        if !self.is_loop_running.load(Ordering::Relaxed) {
+            let channel = self.channel.clone();
+            let should_stop = self.should_stop.clone();
+
+            tokio::spawn(async move {
+                channel.recv_async().await.unwrap();
+                should_stop.store(true, Ordering::Relaxed);
+            });
+
+            self.is_loop_running.store(true, Ordering::Relaxed);
+        }
+
+        if self.should_stop.load(Ordering::Relaxed) {
+            return Some(Event::Cancel);
+        }
 
         if handler.queue().is_empty() {
             if (self.elapsed.fetch_add(1, Ordering::Relaxed) + 1) > 5 {
-                if let Some(state) = bot_channel_id {
-                    if self.voice_channel_id != state.channel_id.unwrap() {
-                        return Some(Event::Cancel);
-                    }
-                    let _ = handler.leave().await;
-                    let _ = self
-                        .chan_id
-                        .say(&self.http, "I left the channel due to inactivity")
-                        .await;
-                }
+                let _ = handler.leave().await;
+                let _ = self
+                    .chan_id
+                    .say(&self.http, "I left the channel due to inactivity")
+                    .await;
 
                 return Some(Event::Cancel);
             }

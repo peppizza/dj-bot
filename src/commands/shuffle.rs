@@ -21,7 +21,7 @@ where
     R: rand::Rng,
 {
     for i in (1..values.len()).rev() {
-        values.swap(i, rng.gen_range(0, i + 1))
+        values.swap(i, rng.gen_range(0..i + 1))
     }
 }
 

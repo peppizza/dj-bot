@@ -7,7 +7,7 @@ use serenity::{
 };
 use songbird::Event;
 
-use crate::{checks::*, voice_events::ChannelIdleChecker};
+use crate::{checks::*, data::StopContainer, voice_events::ChannelIdleChecker};
 
 #[command]
 #[checks(not_blacklisted)]
@@ -44,6 +44,14 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
 
     if success.is_ok() {
         let mut handler = handler_lock.lock().await;
+        let data = ctx.data.read().await;
+        let channel_container_lock = data.get::<StopContainer>().unwrap().clone();
+        let mut channel_container = channel_container_lock.lock().await;
+
+        let (tx, rx) = flume::bounded(1);
+
+        channel_container.insert(guild_id, tx);
+
         handler.add_global_event(
             Event::Periodic(Duration::from_secs(60), None),
             ChannelIdleChecker {
@@ -53,7 +61,9 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
                 guild_id,
                 http: ctx.http.clone(),
                 cache: ctx.cache.clone(),
-                voice_channel_id: connect_to,
+                channel: rx,
+                is_loop_running: Default::default(),
+                should_stop: Default::default(),
             },
         );
 

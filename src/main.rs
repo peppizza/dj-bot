@@ -191,6 +191,7 @@ async fn main() -> anyhow::Result<()> {
         data.insert::<PoolContainer>(pool);
         data.insert::<ReqwestClientContainer>(Default::default());
         data.insert::<DjOnlyContainer>(redis_con);
+        data.insert::<StopContainer>(Default::default());
     }
 
     let shard_manager = client.shard_manager.clone();
