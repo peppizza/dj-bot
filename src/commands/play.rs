@@ -73,7 +73,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 let channel_container_lock = data.get::<StopContainer>().unwrap().clone();
                 let mut channel_container = channel_container_lock.lock().await;
 
-                let (tx, rx) = flume::bounded(1);
+                let (tx, rx) = flume::bounded(0);
 
                 channel_container.insert(guild_id, tx);
 
