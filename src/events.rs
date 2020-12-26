@@ -10,7 +10,7 @@ use tokio::io::{self, AsyncBufReadExt};
 use tracing::{debug, error, info};
 
 use crate::{
-    data::{PoolContainer, ReqwestClientContainer},
+    data::{PoolContainer, ReqwestClientContainer, StopContainer},
     db::{delete_guild, delete_user, insert_guild},
 };
 
@@ -153,6 +153,15 @@ impl EventHandler for Handler {
                                 {
                                     let handler = handler_lock.lock().await;
                                     handler.queue().stop();
+
+                                    let data = ctx.data.read().await;
+                                    let channel_container_lock =
+                                        data.get::<StopContainer>().unwrap().clone();
+                                    let mut channel_container = channel_container_lock.lock().await;
+
+                                    let channel = channel_container.remove(&guild_id).unwrap();
+
+                                    channel.send_async(()).await.unwrap();
                                 }
                                 let _ = manager.remove(guild_id).await;
                             }
@@ -254,6 +263,15 @@ impl EventHandler for Handler {
                         {
                             let handler = handler_lock.lock().await;
                             handler.queue().stop();
+
+                            let data = ctx.data.read().await;
+                            let channel_container_lock =
+                                data.get::<StopContainer>().unwrap().clone();
+                            let mut channel_container = channel_container_lock.lock().await;
+
+                            let channel = channel_container.remove(&guild_id).unwrap();
+
+                            channel.send_async(()).await.unwrap();
                         }
                         let _ = manager.remove(guild_id).await;
                     }
@@ -262,6 +280,14 @@ impl EventHandler for Handler {
                 {
                     let handler = handler_lock.lock().await;
                     handler.queue().stop();
+
+                    let data = ctx.data.read().await;
+                    let channel_container_lock = data.get::<StopContainer>().unwrap().clone();
+                    let mut channel_container = channel_container_lock.lock().await;
+
+                    let channel = channel_container.remove(&guild_id).unwrap();
+
+                    channel.send_async(()).await.unwrap();
                 }
                 let _ = manager.remove(guild_id).await;
             }
