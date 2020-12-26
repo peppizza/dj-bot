@@ -162,7 +162,6 @@ async fn main() -> anyhow::Result<()> {
                     }
                     .boxed()
                 })
-                .allow_dm(false)
                 .case_insensitivity(true)
         })
         .on_dispatch_error(dispatch_error)
