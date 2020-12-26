@@ -10,7 +10,7 @@ use songbird::Event;
 use crate::{checks::*, data::StopContainer, voice_events::ChannelIdleChecker};
 
 #[command]
-#[checks(not_blacklisted)]
+#[checks(dj_only)]
 #[description = "Makes the bot join the voice channel you are in"]
 #[bucket = "global"]
 async fn join(ctx: &Context, msg: &Message) -> CommandResult {
