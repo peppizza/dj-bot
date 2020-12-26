@@ -12,15 +12,7 @@ use crate::ShardManagerContainer;
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
 
-    let shard_manager = match data.get::<ShardManagerContainer>() {
-        Some(v) => v,
-        None => {
-            msg.reply_ping(ctx, "There was a problem getting the shard manager")
-                .await?;
-
-            return Ok(());
-        }
-    };
+    let shard_manager = data.get::<ShardManagerContainer>().unwrap().clone();
 
     let manager = shard_manager.lock().await;
     let runners = manager.runners.lock().await;
