@@ -48,7 +48,7 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
         let channel_container_lock = data.get::<StopContainer>().unwrap().clone();
         let mut channel_container = channel_container_lock.lock().await;
 
-        let (tx, rx) = flume::bounded(0);
+        let (tx, rx) = flume::bounded(1);
 
         channel_container.insert(guild_id, tx);
 
