@@ -33,11 +33,12 @@ mod util {
     pub fn format_duration_to_mm_ss(duration: Duration) -> String {
         let seconds = duration.as_secs() % 60;
         let minutes = (duration.as_secs() / 60) % 60;
+        let hours = (duration.as_secs() / 60) / 60;
 
         if seconds < 10 {
-            format!("{}:0{}", minutes, seconds)
+            format!("{}:{}:0{}", hours, minutes, seconds)
         } else {
-            format!("{}:{}", minutes, seconds)
+            format!("{}:{}:{}", hours, minutes, seconds)
         }
     }
 

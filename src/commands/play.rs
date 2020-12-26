@@ -317,6 +317,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 let length = metadata.duration.unwrap_or_default();
                 let mut seconds = (length.as_secs() % 60).to_string();
                 let minutes = (length.as_secs() / 60) % 60;
+                let hours = (length.as_secs() / 60) / 60;
                 let url = metadata.source_url.unwrap_or_default();
 
                 if seconds.len() < 2 {
@@ -332,7 +333,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                         (handler.queue().len() - 1).to_string(),
                         true,
                     ),
-                    ("Length", format!("{}:{}", minutes, seconds), true),
+                    ("Length", format!("{}:{}:{}", hours, minutes, seconds), true),
                 ]);
 
                 e.footer(|f| {
