@@ -10,7 +10,7 @@ use tokio::io::{self, AsyncBufReadExt};
 use tracing::{debug, error, info};
 
 use crate::{
-    data::{PoolContainer, ReqwestClientContainer, StopContainer},
+    data::{PoolContainer, ReqwestClientContainer, ShardManagerContainer, StopContainer},
     db::{delete_guild, delete_user, insert_guild},
 };
 
@@ -231,6 +231,24 @@ impl EventHandler for Handler {
                                     println!("{:?}", bot_channel_id.guild_id);
                                 }
                             }
+                        }
+                        "sys-info" => {
+                            let cpu_load = sys_info::loadavg().unwrap();
+                            let mem_use = sys_info::mem_info().unwrap();
+
+                            println!("CPU load average, {:.2}%", cpu_load.one * 10.0);
+                            println!(
+                                "Memory Usage, {:.2} MB Free out of {:.2} MB",
+                                mem_use.free as f32 / 1000.0,
+                                mem_use.total as f32 / 1000.0
+                            )
+                        }
+                        "q" => {
+                            let data = ctx.data.read().await;
+                            let shard_manager_lock =
+                                data.get::<ShardManagerContainer>().unwrap().clone();
+                            let mut shard_manager = shard_manager_lock.lock().await;
+                            shard_manager.shutdown_all().await;
                         }
                         _ => {}
                     }
