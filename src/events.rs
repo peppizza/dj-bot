@@ -243,7 +243,7 @@ impl EventHandler for Handler {
                                 mem_use.total as f32 / 1000.0
                             )
                         }
-                        "q" => {
+                        "quit" | "q" => {
                             let data = ctx.data.read().await;
                             let shard_manager_lock =
                                 data.get::<ShardManagerContainer>().unwrap().clone();
