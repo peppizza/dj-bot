@@ -23,6 +23,7 @@ serde_json = "1.0"
 redis = { version = "0.17", default-features = false, features = ["tokio-comp", "aio", "tokio-rt-core"] }
 flume = { version = "0.10", features = ["async"] }
 sys-info = "0.7"
+parking_lot = "0.11"
 
 [dependencies.serenity]
 git = "https://github.com/serenity-rs/serenity"
@@ -31,4 +32,3 @@ branch = "current"
 [dependencies.songbird]
 git = "https://github.com/serenity-rs/songbird"
 branch = "current"
-features = ["builtin-queue"]

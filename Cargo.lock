@@ -362,6 +362,7 @@ dependencies = [
  "dotenv",
  "flume",
  "lazy_static",
+ "parking_lot",
  "rand 0.8.0",
  "redis",
  "reqwest",
