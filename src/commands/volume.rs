@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::checks::*;
+use crate::{checks::*, queue::QueueMap};
 
 #[command]
 #[aliases("vol")]
@@ -21,8 +21,9 @@ async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             let manager = songbird::get(ctx).await.unwrap().clone();
 
             if let Some(handler_lock) = manager.get(guild_id) {
-                let handler = handler_lock.lock().await;
-                let queue = handler.queue();
+                let data = ctx.data.read().await;
+                let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
+                let queue_container = queue_container_lock.read().await;
 
                 if let Some(handle) = queue.current() {
                     let mut current_volume = handle.get_info().await?.volume * 100f32;
