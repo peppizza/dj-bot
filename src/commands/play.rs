@@ -15,6 +15,7 @@ use crate::{
     checks::*,
     data::{ReqwestClientContainer, StopContainer},
     playlists::{get_list_of_spotify_tracks, get_list_of_urls},
+    queue::{get_queue_from_ctx_and_guild_id, QueueMap},
     voice_events::{ChannelIdleChecker, TrackStartNotifier},
 };
 
@@ -72,6 +73,11 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 let data = ctx.data.read().await;
                 let channel_container_lock = data.get::<StopContainer>().unwrap().clone();
                 let mut channel_container = channel_container_lock.lock().await;
+                let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
+                let mut queue_container = queue_container_lock.write().await;
+                let queue = queue_container
+                    .insert(guild_id, Default::default())
+                    .unwrap();
 
                 let (tx, rx) = flume::bounded(1);
 
@@ -89,6 +95,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                         channel: rx,
                         is_loop_running: Default::default(),
                         should_stop: Default::default(),
+                        queue,
                     },
                 );
 
@@ -130,6 +137,8 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 let mut handler = handler_lock.lock().await;
 
                 let (track, handle) = songbird::create_player(input);
+
+                let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
                 if !handler.queue().is_empty() {
                     handle.add_event(

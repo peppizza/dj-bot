@@ -5,7 +5,7 @@ use serenity::{
 };
 
 use super::util::{format_duration_to_mm_ss, formatted_song_listing};
-use crate::checks::*;
+use crate::{checks::*, queue::get_queue_from_ctx_and_guild_id};
 
 #[command]
 #[checks(not_blacklisted)]
@@ -16,12 +16,11 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
 
     let manager = songbird::get(ctx).await.unwrap().clone();
 
-    if let Some(handler_lock) = manager.get(guild_id) {
-        let handler = handler_lock.lock().await;
-        let queue = handler.queue();
-        let current_queue = queue.current_queue();
+    if manager.get(guild_id).is_some() {
+        let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
+        let current_queue = queue.current_queue().await;
 
-        if queue.is_empty() {
+        if queue.is_empty().await {
             msg.channel_id.say(ctx, "The queue is empty").await?;
             return Ok(());
         }
@@ -34,7 +33,7 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
             metadata_list.push(metadata);
         }
 
-        let current = queue.current().unwrap();
+        let current = queue.current().await.unwrap();
 
         let metadata = current.metadata();
 
@@ -52,7 +51,7 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
 
             response.push(format!("{} ", title.unwrap_or_default()));
 
-            if idx != queue.len() {
+            if idx != queue.len().await {
                 response.push_mono(format!("{}", idx + 1)).push("\n\n");
             } else {
                 response.push_mono(format!("{}", idx + 1));

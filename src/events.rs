@@ -158,8 +158,8 @@ impl EventHandler for Handler {
                                     let mut channel_container = channel_container_lock.lock().await;
                                     let queue_container_lock =
                                         data.get::<QueueMap>().unwrap().clone();
-                                    let queue_container = queue_container_lock.read().await;
-                                    let queue = queue_container.get(&guild_id).unwrap();
+                                    let mut queue_container = queue_container_lock.write().await;
+                                    let queue = queue_container.remove(&guild_id).unwrap();
                                     queue.stop().await;
 
                                     let channel = channel_container.remove(&guild_id).unwrap();
@@ -287,10 +287,9 @@ impl EventHandler for Handler {
                                 data.get::<StopContainer>().unwrap().clone();
                             let mut channel_container = channel_container_lock.lock().await;
                             let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
-                            let mut queue_container = queue_container_lock.read().await;
-                            let queue = queue_container.get(&guild_id).unwrap();
+                            let mut queue_container = queue_container_lock.write().await;
+                            let queue = queue_container.remove(&guild_id).unwrap();
                             queue.stop().await;
-                            queue_container.remove(&guild_id);
 
                             let channel = channel_container.remove(&guild_id).unwrap();
 
@@ -305,8 +304,8 @@ impl EventHandler for Handler {
                     let channel_container_lock = data.get::<StopContainer>().unwrap().clone();
                     let mut channel_container = channel_container_lock.lock().await;
                     let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
-                    let queue_container = queue_container_lock.read().await;
-                    let queue = queue_container.get(&guild_id).unwrap();
+                    let mut queue_container = queue_container_lock.write().await;
+                    let queue = queue_container.remove(&guild_id).unwrap();
                     queue.stop().await;
 
                     let channel = channel_container.remove(&guild_id).unwrap();

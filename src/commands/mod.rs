@@ -42,23 +42,18 @@ mod util {
     }
 
     pub async fn formatted_song_listing(
-        metadata: Arc<Metadata>,
+        title: &str,
+        duration: Duration,
         track: &TrackHandle,
         include_pos: bool,
         new_line: bool,
         place_in_queue: Option<usize>,
     ) -> Result<MessageBuilder, Box<dyn std::error::Error + Send + Sync>> {
-        let metadata = metadata.clone();
-
         let track_info = track.get_info().await?;
 
         let is_playing = matches!(track_info.playing, PlayMode::Play);
 
-        let track_len = metadata.duration.unwrap_or_default();
-
-        let track_len_mm_ss = format_duration_to_mm_ss(track_len);
-
-        let track_title = metadata.title.clone();
+        let track_len_mm_ss = format_duration_to_mm_ss(duration);
 
         let mut response = MessageBuilder::new();
 
@@ -73,7 +68,7 @@ mod util {
                 response.push_bold(format!("[ {}/{} ]⏸", track_pos_mm_ss, track_len_mm_ss));
             }
 
-            response.push(format!("{} ", track_title.unwrap()));
+            response.push(format!("{} ", title));
 
             if new_line {
                 response.push("\n\n");
@@ -83,7 +78,7 @@ mod util {
         } else {
             response
                 .push_bold(format!("[ {} ]", track_len_mm_ss))
-                .push(format!("{} ", track_title.unwrap_or_default()));
+                .push(format!("{} ", title));
 
             let place_in_queue = place_in_queue.unwrap_or_default();
 
