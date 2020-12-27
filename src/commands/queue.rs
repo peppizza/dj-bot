@@ -3,6 +3,7 @@ use serenity::{
     model::prelude::*,
     prelude::*,
 };
+use songbird::input::Metadata;
 
 use super::util::{format_duration_to_mm_ss, formatted_song_listing};
 use crate::checks::*;
@@ -26,13 +27,10 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
             return Ok(());
         }
 
-        let mut metadata_list = Vec::new();
-
-        for handle in current_queue {
-            let metadata = handle.metadata();
-
-            metadata_list.push(metadata);
-        }
+        let mut metadata_list = current_queue
+            .iter()
+            .map(|handle| handle.metadata().clone())
+            .collect::<Vec<Metadata>>();
 
         let current = queue.current().unwrap();
 

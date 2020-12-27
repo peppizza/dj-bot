@@ -21,7 +21,7 @@ pub mod stop;
 pub mod volume;
 
 mod util {
-    use std::{sync::Arc, time::Duration};
+    use std::time::Duration;
 
     use serenity::utils::MessageBuilder;
 
@@ -43,7 +43,7 @@ mod util {
     }
 
     pub async fn formatted_song_listing(
-        metadata: Arc<Metadata>,
+        metadata: &Metadata,
         track: &TrackHandle,
         include_pos: bool,
         new_line: bool,
