@@ -5,8 +5,8 @@ use serenity::{
 };
 use songbird::input::Metadata;
 
-use super::util::{format_duration_to_mm_ss, formatted_song_listing};
-use crate::checks::*;
+use super::util::formatted_song_listing;
+use crate::{checks::*, queue::get_queue_from_ctx_and_guild_id};
 
 #[command]
 #[checks(not_blacklisted)]
@@ -17,9 +17,8 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
 
     let manager = songbird::get(ctx).await.unwrap().clone();
 
-    if let Some(handler_lock) = manager.get(guild_id) {
-        let handler = handler_lock.lock().await;
-        let queue = handler.queue();
+    if manager.get(guild_id).is_some() {
+        let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
         let current_queue = queue.current_queue();
 
         if queue.is_empty() {
@@ -27,28 +26,26 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
             return Ok(());
         }
 
-        let mut metadata_list = current_queue
-            .iter()
-            .map(|handle| handle.metadata().clone())
-            .collect::<Vec<Metadata>>();
+        let mut title_list = Vec::new();
+
+        for handle in current_queue {
+            let metadata = handle.name.clone();
+
+            title_list.push(metadata);
+        }
 
         let current = queue.current().unwrap();
 
         let metadata = current.metadata();
 
-        let mut response = formatted_song_listing(metadata, &current, true, true, None).await?;
+        let title = metadata.title.clone().unwrap();
 
-        metadata_list.remove(0);
+        let mut response = formatted_song_listing(&title, &current, true, true, None).await?;
 
-        for (idx, metadata) in metadata_list.iter().enumerate() {
-            let track_length = metadata.duration.unwrap_or_default();
-            let title = metadata.title.clone();
+        title_list.remove(0);
 
-            let len_mm_ss = format_duration_to_mm_ss(track_length);
-
-            response.push_bold(format!("[ {} ] ", len_mm_ss));
-
-            response.push(format!("{} ", title.unwrap_or_default()));
+        for (idx, title) in title_list.iter().enumerate() {
+            response.push(format!("{} ", title));
 
             if idx != queue.len() {
                 response.push_mono(format!("{}", idx + 1)).push("\n\n");

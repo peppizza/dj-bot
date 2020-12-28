@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::checks::*;
+use crate::{checks::*, queue::get_queue_from_ctx_and_guild_id};
 
 use std::collections::VecDeque;
 
@@ -43,9 +43,8 @@ async fn shuffle(ctx: &Context, msg: &Message) -> CommandResult {
 
     let manager = songbird::get(ctx).await.unwrap().clone();
 
-    if let Some(handler_lock) = manager.get(guild_id) {
-        let handler = handler_lock.lock().await;
-        let queue = handler.queue();
+    if manager.get(guild_id).is_some() {
+        let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
         if queue.is_empty() {
             msg.reply_mention(ctx, "The queue is currently empty")

@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::checks::*;
+use crate::{checks::*, queue::get_queue_from_ctx_and_guild_id};
 
 #[command]
 #[checks(dj_only)]
@@ -17,9 +17,8 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     let manager = songbird::get(ctx).await.unwrap().clone();
 
-    if let Some(handler_lock) = manager.get(guild_id) {
-        let handler = handler_lock.lock().await;
-        let queue = handler.queue();
+    if manager.get(guild_id).is_some() {
+        let mut queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
         if !queue.is_empty() {
             if index == 0 {
                 queue.skip()?;
@@ -31,10 +30,7 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 return Ok(());
             } else {
                 let track = queue.dequeue(index).unwrap();
-                let metadata = track.metadata();
-                let title = metadata.title.clone().unwrap_or_default();
-
-                track.stop()?;
+                let title = track.name;
 
                 msg.channel_id
                     .say(ctx, format!("Removed song: `{}`", title))

@@ -7,6 +7,8 @@ use std::sync::{
     Arc,
 };
 
+use crate::queue::Queue;
+
 pub struct TrackStartNotifier {
     pub chan_id: ChannelId,
     pub http: Arc<Http>,
@@ -46,6 +48,7 @@ pub struct ChannelIdleChecker {
     pub channel: Receiver<()>,
     pub is_loop_running: AtomicBool,
     pub should_stop: Arc<AtomicBool>,
+    pub queue: Queue,
 }
 
 #[async_trait]
@@ -69,7 +72,7 @@ impl VoiceEventHandler for ChannelIdleChecker {
             return Some(Event::Cancel);
         }
 
-        if handler.queue().is_empty() {
+        if self.queue.is_empty() {
             if (self.elapsed.fetch_add(1, Ordering::Relaxed) + 1) > 5 {
                 let _ = handler.leave().await;
                 let _ = self

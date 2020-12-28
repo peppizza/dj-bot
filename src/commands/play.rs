@@ -7,15 +7,17 @@ use serenity::{
     utils::Color,
 };
 
-use songbird::{input::Restartable, Event};
+use songbird::Event;
 
-use tracing::error;
+use tracing::warn;
+use uuid::Uuid;
 
 use crate::{
     checks::*,
     data::{ReqwestClientContainer, StopContainer},
-    playlists::{get_list_of_spotify_tracks, get_list_of_urls},
-    voice_events::{ChannelIdleChecker, TrackStartNotifier},
+    playlists::{get_list_of_spotify_tracks, get_list_of_urls, get_ytdl_metadata},
+    queue::{get_queue_from_ctx_and_guild_id, QueueMap, QueuedTrack},
+    voice_events::ChannelIdleChecker,
 };
 
 #[command]
@@ -72,6 +74,9 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 let data = ctx.data.read().await;
                 let channel_container_lock = data.get::<StopContainer>().unwrap().clone();
                 let mut channel_container = channel_container_lock.lock().await;
+                let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
+                let mut queue_container = queue_container_lock.write().await;
+                let queue = queue_container.entry(guild_id).or_default();
 
                 let (tx, rx) = flume::bounded(1);
 
@@ -89,6 +94,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                         channel: rx,
                         is_loop_running: Default::default(),
                         should_stop: Default::default(),
+                        queue: queue.clone(),
                     },
                 );
 
@@ -106,40 +112,17 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         }
     };
 
-    let (source, mut reply_msg) = if url.starts_with("http") {
+    if url.starts_with("http") {
         if url.contains("list=") {
             let mut reply_msg = msg
                 .channel_id
                 .send_message(ctx, |m| m.embed(|e| e.title("Downloading playlist...")))
                 .await?;
 
-            let urls = get_list_of_urls(url).await?;
+            let urls = get_list_of_urls(&url).await?;
 
             for url in urls {
-                let input = Restartable::ytdl(url.url.clone()).await;
-
-                let input = match input {
-                    Ok(i) => songbird::input::Input::from(i),
-                    Err(e) => {
-                        error!("Error starting source: {:?}", e);
-
-                        continue;
-                    }
-                };
-
-                let mut handler = handler_lock.lock().await;
-
-                let (track, handle) = songbird::create_player(input);
-
-                if !handler.queue().is_empty() {
-                    handle.add_event(
-                        Event::Delayed(Duration::from_millis(5)),
-                        TrackStartNotifier {
-                            chan_id: msg.channel_id,
-                            http: ctx.http.clone(),
-                        },
-                    )?;
-                }
+                let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
                 let guild = msg.guild(ctx).await.unwrap();
 
@@ -148,10 +131,18 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     .get(&ctx.cache.current_user_id().await)
                     .is_none()
                 {
-                    handler.queue().stop();
+                    queue.stop();
                     break;
                 }
-                handler.enqueue(track);
+                queue
+                    .add(
+                        QueuedTrack {
+                            name: url.title,
+                            uuid: Uuid::new_v4(),
+                        },
+                        handler_lock.clone(),
+                    )
+                    .await?;
             }
 
             reply_msg
@@ -159,8 +150,6 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     m.embed(|e| e.title("Finished downloading playlist"))
                 })
                 .await?;
-
-            return Ok(());
         } else if url.starts_with("https://open.spotify.com/playlist/") {
             let mut reply_msg = msg
                 .channel_id
@@ -183,32 +172,9 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
             for item in tracks.items {
                 let track = item.track;
-                let formatted_search = format!("{}{}", track.name, track.artists[0].name);
+                let formatted_search = format!("{} {}", track.name, track.artists[0].name);
 
-                let input = Restartable::ytdl_search(&formatted_search).await;
-
-                let input = match input {
-                    Ok(i) => songbird::input::Input::from(i),
-                    Err(e) => {
-                        error!("Error starting source: {:?}", e);
-
-                        continue;
-                    }
-                };
-
-                let mut handler = handler_lock.lock().await;
-
-                let (track, handle) = songbird::create_player(input);
-
-                if !handler.queue().is_empty() {
-                    handle.add_event(
-                        Event::Delayed(Duration::from_millis(5)),
-                        TrackStartNotifier {
-                            chan_id: msg.channel_id,
-                            http: ctx.http.clone(),
-                        },
-                    )?;
-                }
+                let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
                 let guild = msg.guild(ctx).await.unwrap();
 
@@ -217,10 +183,18 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     .get(&ctx.cache.current_user_id().await)
                     .is_none()
                 {
-                    handler.queue().stop();
+                    queue.stop();
                     break;
                 }
-                handler.enqueue(track);
+                queue
+                    .add(
+                        QueuedTrack {
+                            name: formatted_search,
+                            uuid: Uuid::new_v4(),
+                        },
+                        handler_lock.clone(),
+                    )
+                    .await?;
             }
 
             reply_msg
@@ -228,30 +202,27 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     m.embed(|e| e.title("Finished downloading spotify playlist"))
                 })
                 .await?;
-
-            return Ok(());
         } else {
             let mut reply_msg = msg
                 .channel_id
                 .send_message(ctx, |m| m.embed(|e| e.title("Downloading song...")))
                 .await?;
 
-            let source = match Restartable::ytdl(url).await {
-                Ok(source) => source,
-                Err(why) => {
-                    error!("Err starting source: {:?}", why);
+            let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
-                    reply_msg
-                        .edit(ctx, |m| {
-                            m.content("There was a problem downloading the song")
-                        })
-                        .await?;
+            queue
+                .add(
+                    QueuedTrack {
+                        name: url,
+                        uuid: Uuid::new_v4(),
+                    },
+                    handler_lock,
+                )
+                .await?;
 
-                    return Ok(());
-                }
-            };
-
-            (source, reply_msg)
+            reply_msg
+                .edit(ctx, |m| m.embed(|e| e.title("Added song to queue")))
+                .await?;
         }
     } else {
         let mut reply_msg = msg
@@ -264,61 +235,32 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             })
             .await?;
 
-        let source = match Restartable::ytdl_search(&url).await {
-            Ok(source) => source,
-            Err(why) => {
-                error!("Err starting source: {:?}", why);
+        let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
+        let track_metadata = match get_ytdl_metadata(&url).await {
+            Ok(m) => m,
+            Err(e) => {
+                warn!("YTDL error {:?}", e);
                 reply_msg
                     .edit(ctx, |m| {
-                        m.embed(|e| {
-                            e.title("There was a problem downloading that song, try using the direct url");
-
-                            e.color(Color::DARK_RED);
-
-                            e
-                        })
+                        m.suppress_embeds(true)
+                            .content(format!("Could not find track {}", url))
                     })
                     .await?;
-
                 return Ok(());
             }
         };
 
-        (source, reply_msg)
-    };
-
-    let source = songbird::input::Input::from(source);
-    let metadata = source.metadata.clone();
-
-    let mut handler = handler_lock.lock().await;
-
-    let (track, handle) = songbird::create_player(source);
-
-    if !handler.queue().is_empty() {
-        let send_http = ctx.http.clone();
-
-        handle.add_event(
-            Event::Delayed(Duration::from_millis(5)),
-            TrackStartNotifier {
-                chan_id: msg.channel_id,
-                http: send_http,
-            },
-        )?;
-    }
-
-    handler.enqueue(track);
-
-    reply_msg
+        reply_msg
         .edit(ctx, |m| {
             m.embed(|e| {
-                let title = metadata.title.unwrap_or_default();
-                let artist = metadata.artist.unwrap_or_default();
-                let length = metadata.duration.unwrap_or_default();
+                let title = track_metadata.title;
+                let artist = track_metadata.uploader;
+                let length = Duration::from_secs(track_metadata.duration as u64);
                 let mut seconds = (length.as_secs() % 60).to_string();
                 let minutes = (length.as_secs() / 60) % 60;
+                let url = track_metadata.webpage_url;
                 let hours = (length.as_secs() / 60) / 60;
-                let url = metadata.source_url.unwrap_or_default();
 
                 if seconds.len() < 2 {
                     seconds = format!("0{}", seconds);
@@ -330,7 +272,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     ("Artist", artist, true),
                     (
                         "Spot in queue",
-                        (handler.queue().len() - 1).to_string(),
+                        (queue.len()).to_string(),
                         true,
                     ),
                     ("Length", format!("{}:{}:{}", hours, minutes, seconds), true),
@@ -349,6 +291,19 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             })
         })
         .await?;
+
+        queue
+            .add(
+                QueuedTrack {
+                    name: url,
+                    uuid: Uuid::new_v4(),
+                },
+                handler_lock,
+            )
+            .await?;
+
+        msg.reply(ctx, format!("{:?}", queue)).await?;
+    };
 
     Ok(())
 }

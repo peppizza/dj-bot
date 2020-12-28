@@ -5,21 +5,22 @@ use serenity::{
     utils::Color,
 };
 
-use crate::{checks::*, lyrics_api::get_lyrics};
+use crate::{checks::*, lyrics_api::get_lyrics, queue::get_queue_from_ctx_and_guild_id};
 
 #[command]
 #[checks(not_blacklisted)]
 #[description = "Shows the lyrics to a song.  If no arguments are provided it will show the lyrics of the currently playing song"]
 #[bucket = "global"]
 async fn lyrics(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let guild_id = msg.guild_id.unwrap();
+
     let name_of_song = match args.remains() {
         Some(name) => name.to_string(),
         None => {
             let manager = songbird::get(ctx).await.unwrap().clone();
 
-            if let Some(handler_lock) = manager.get(msg.guild_id.unwrap()) {
-                let handler = handler_lock.lock().await;
-                let queue = handler.queue();
+            if manager.get(guild_id).is_some() {
+                let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
                 if let Some(handle) = queue.current() {
                     let metadata = handle.metadata();

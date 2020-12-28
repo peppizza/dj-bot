@@ -6,7 +6,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::checks::*;
+use crate::{checks::*, queue::get_queue_from_ctx_and_guild_id};
 
 #[command]
 #[checks(dj_only)]
@@ -17,9 +17,8 @@ async fn restart(ctx: &Context, msg: &Message) -> CommandResult {
 
     let manager = songbird::get(ctx).await.unwrap().clone();
 
-    if let Some(handler_lock) = manager.get(guild_id) {
-        let handler = handler_lock.lock().await;
-        let queue = handler.queue();
+    if manager.get(guild_id).is_some() {
+        let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
         if let Some(track_handle) = queue.current() {
             msg.channel_id.say(ctx, "Restarting track...").await?;

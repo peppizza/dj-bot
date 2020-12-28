@@ -4,7 +4,10 @@ use serenity::{
     prelude::*,
 };
 
-use crate::checks::*;
+use crate::{
+    checks::*,
+    queue::{get_queue_from_ctx_and_guild_id, QueueMap},
+};
 
 #[command]
 #[aliases("vol")]
@@ -20,9 +23,11 @@ async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         Err(_) => {
             let manager = songbird::get(ctx).await.unwrap().clone();
 
-            if let Some(handler_lock) = manager.get(guild_id) {
-                let handler = handler_lock.lock().await;
-                let queue = handler.queue();
+            if manager.get(guild_id).is_some() {
+                let data = ctx.data.read().await;
+                let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
+                let queue_container = queue_container_lock.read().await;
+                let queue = queue_container.get(&guild_id).unwrap();
 
                 if let Some(handle) = queue.current() {
                     let mut current_volume = handle.get_info().await?.volume * 100f32;
@@ -52,9 +57,8 @@ async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     let manager = songbird::get(ctx).await.unwrap().clone();
 
-    if let Some(handler_lock) = manager.get(guild_id) {
-        let handler = handler_lock.lock().await;
-        let queue = handler.queue();
+    if manager.get(guild_id).is_some() {
+        let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
         if let Some(handle) = queue.current() {
             handle.set_volume(new_volume)?;

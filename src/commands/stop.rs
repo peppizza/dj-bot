@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::{checks::*, data::StopContainer};
+use crate::{checks::*, data::StopContainer, queue::QueueMap};
 
 #[command]
 #[checks(dj_only)]
@@ -16,15 +16,15 @@ async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
 
     let manager = songbird::get(ctx).await.unwrap().clone();
 
-    if let Some(handler_lock) = manager.get(guild_id) {
+    if manager.get(guild_id).is_some() {
         {
-            let handler = handler_lock.lock().await;
-
-            handler.queue().stop();
-
             let data = ctx.data.read().await;
             let channel_container_lock = data.get::<StopContainer>().unwrap().clone();
             let mut channel_container = channel_container_lock.lock().await;
+            let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
+            let mut queue_container = queue_container_lock.write().await;
+            let queue = queue_container.remove(&guild_id).unwrap();
+            queue.stop();
 
             let channel = channel_container.remove(&guild_id).unwrap();
 

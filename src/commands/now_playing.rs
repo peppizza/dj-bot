@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use crate::checks::*;
+use crate::{checks::*, queue::get_queue_from_ctx_and_guild_id};
 
 use super::util::formatted_song_listing;
 
@@ -18,13 +18,13 @@ async fn now_playing(ctx: &Context, msg: &Message) -> CommandResult {
 
     let manager = songbird::get(ctx).await.unwrap().clone();
 
-    if let Some(handler_lock) = manager.get(guild_id) {
-        let handler = handler_lock.lock().await;
-        let queue = handler.queue();
+    if manager.get(guild_id).is_some() {
+        let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
         if let Some(current_track) = queue.current() {
             let metadata = current_track.metadata();
+            let title = metadata.title.clone().unwrap();
 
-            let response = formatted_song_listing(metadata, &current_track, true, false, None)
+            let response = formatted_song_listing(&title, &current_track, true, false, None)
                 .await?
                 .build();
 

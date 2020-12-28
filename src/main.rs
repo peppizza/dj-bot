@@ -7,6 +7,7 @@ mod dj_only_store;
 mod events;
 mod lyrics_api;
 mod playlists;
+mod queue;
 mod voice_events;
 
 use db::get_guild_prefix;
@@ -44,6 +45,7 @@ use commands::{
 
 use data::*;
 use events::Handler;
+use queue::QueueMap;
 
 #[group]
 #[commands(
@@ -191,6 +193,7 @@ async fn main() -> anyhow::Result<()> {
         data.insert::<ReqwestClientContainer>(Default::default());
         data.insert::<DjOnlyContainer>(redis_con);
         data.insert::<StopContainer>(Default::default());
+        data.insert::<QueueMap>(Default::default());
     }
 
     let shard_manager = client.shard_manager.clone();
