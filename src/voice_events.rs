@@ -72,7 +72,7 @@ impl VoiceEventHandler for ChannelIdleChecker {
             return Some(Event::Cancel);
         }
 
-        if self.queue.is_empty().await {
+        if self.queue.is_empty() {
             if (self.elapsed.fetch_add(1, Ordering::Relaxed) + 1) > 5 {
                 let _ = handler.leave().await;
                 let _ = self

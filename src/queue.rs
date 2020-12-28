@@ -1,10 +1,6 @@
 use std::{
     collections::{HashMap, VecDeque},
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
-    time::Duration,
+    sync::Arc,
 };
 
 use anyhow::{anyhow, Result};
@@ -13,12 +9,12 @@ use serenity::{
     async_trait,
     client::Context,
     model::id::GuildId,
-    prelude::{RwLock, TypeMapKey},
+    prelude::{Mutex as AsyncMutex, RwLock, TypeMapKey},
 };
 use songbird::{
     create_player,
     input::{Input, Restartable},
-    tracks::{TrackHandle, TrackResult},
+    tracks::TrackHandle,
     Call, Event, EventContext, EventHandler, TrackEvent,
 };
 use tracing::{info, warn};
@@ -28,7 +24,6 @@ use uuid::Uuid;
 pub struct QueuedTrack {
     pub name: String,
     pub uuid: Uuid,
-    pub length: Duration,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -44,47 +39,74 @@ pub struct QueueCore {
 
 struct PlayNextTrack {
     remote_lock: Arc<Mutex<QueueCore>>,
-    driver: Arc<Mutex<Call>>,
-    should_not_check_uuid: AtomicBool,
+    driver: Arc<AsyncMutex<Call>>,
 }
 
 #[async_trait]
 impl EventHandler for PlayNextTrack {
     async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
-        let track = {
+        {
             let mut inner = self.remote_lock.lock();
 
-            if !self.should_not_check_uuid.load(Ordering::Relaxed) {
-                let front_ended = match ctx {
-                    EventContext::Track(ts) => {
-                        let queue_uuid = inner.tracks.front().map(|input| input.uuid);
-                        let ended_uuid = ts.first().map(|handle| handle.1.uuid());
+            let front_ended = match ctx {
+                EventContext::Track(ts) => {
+                    let queue_uuid = inner.tracks.front().map(|input| input.uuid);
+                    let ended_uuid = ts.first().map(|handle| handle.1.uuid());
 
-                        queue_uuid.is_some() && queue_uuid == ended_uuid
-                    }
-                    _ => false,
-                };
-
-                if !front_ended {
-                    return None;
+                    queue_uuid.is_some() && queue_uuid == ended_uuid
                 }
+                _ => false,
+            };
+
+            if !front_ended {
+                return None;
             }
 
             inner.tracks.pop_front();
 
             info!("Queued track ended: {:?}.", ctx);
             info!("{} tracks remain.", inner.tracks.len());
+        }
 
-            if let Some(track) = inner.tracks.front() {
-                Some(track.clone())
+        let mut should_pop = false;
+        loop {
+            let next_track = {
+                let mut inner = self.remote_lock.lock();
+                if should_pop {
+                    inner.tracks.pop_front();
+                }
+                inner.tracks.front().cloned()
+            };
+
+            if let Some(next_track) = next_track {
+                let next_track_uuid = next_track.uuid;
+                let input = match get_input_from_queued_track(next_track).await {
+                    Ok(i) => i,
+                    Err(e) => {
+                        warn!("Could not play track {:?}", e);
+                        should_pop = true;
+                        continue;
+                    }
+                };
+
+                let (mut track, mut handle) = create_player(input);
+                let _ = handle.add_event(
+                    Event::Track(TrackEvent::End),
+                    Self {
+                        driver: self.driver.clone(),
+                        remote_lock: self.remote_lock.clone(),
+                    },
+                );
+                track.set_uuid(next_track_uuid);
+                handle.set_uuid(next_track_uuid);
+                let mut handler = self.driver.lock().await;
+                handler.play(track);
+                let mut inner = self.remote_lock.lock();
+                inner.current_track = Some(handle);
+                break;
             } else {
-                None
+                break;
             }
-        };
-
-        if let Some(track) = track {
-        } else {
-            self.should_not_check_uuid.store(true, Ordering::Relaxed);
         }
 
         None
@@ -99,64 +121,55 @@ async fn get_input_from_queued_track(track: QueuedTrack) -> Result<Input> {
 }
 
 impl Queue {
-    pub async fn add(&self, input: QueuedTrack, driver: Arc<Mutex<Call>>) -> anyhow::Result<()> {
-        let mut inner = self.inner.lock().await;
-        let url = input.url.clone();
-        inner.tracks.push_front(input);
-        if self.is_empty().await {
-            let input = match Restartable::ytdl(url).await {
+    pub async fn add(
+        &self,
+        input: QueuedTrack,
+        driver: Arc<AsyncMutex<Call>>,
+    ) -> anyhow::Result<()> {
+        let (search, input_uuid) = {
+            let mut inner = self.inner.lock();
+            let search = input.name.clone();
+            let input_uuid = input.uuid;
+            inner.tracks.push_back(input);
+            (search, input_uuid)
+        };
+        if self.len() == 1 {
+            let input = match Restartable::ytdl_search(&search).await {
                 Ok(input) => input,
                 Err(e) => return Err(anyhow!("{:?}", e)),
             };
-            let (track, handle) = create_player(Input::from(input));
+            let (mut track, mut handle) = create_player(Input::from(input));
             handle.add_event(
                 Event::Track(TrackEvent::End),
                 PlayNextTrack {
                     driver: driver.clone(),
                     remote_lock: self.inner.clone(),
                 },
-            );
+            )?;
+            track.set_uuid(input_uuid);
+            handle.set_uuid(input_uuid);
             let mut handler = driver.lock().await;
             handler.play(track);
+            let mut inner = self.inner.lock();
             inner.current_track = Some(handle);
         }
         Ok(())
     }
 
-    pub async fn is_empty(&self) -> bool {
-        let inner = self.inner.lock().await;
+    pub fn is_empty(&self) -> bool {
+        let inner = self.inner.lock();
 
         inner.tracks.is_empty()
     }
 
-    pub async fn len(&self) -> usize {
-        let inner = self.inner.lock().await;
+    pub fn len(&self) -> usize {
+        let inner = self.inner.lock();
 
         inner.tracks.len()
     }
 
-    pub async fn pause(&self) -> TrackResult<()> {
-        let inner = self.inner.lock().await;
-
-        if let Some(handle) = &inner.current_track {
-            handle.pause()
-        } else {
-            Ok(())
-        }
-    }
-
-    pub async fn resume(&self) -> TrackResult<()> {
-        let inner = self.inner.lock().await;
-
-        if let Some(handle) = &inner.current_track {
-            handle.play()
-        } else {
-            Ok(())
-        }
-    }
-
-    pub async fn stop(&self) {
-        let mut inner = self.inner.lock().await;
+    pub fn stop(&self) {
+        let mut inner = self.inner.lock();
 
         if let Some(handle) = &inner.current_track {
             let _ = handle.stop();
@@ -165,8 +178,8 @@ impl Queue {
         inner.tracks.clear();
     }
 
-    pub async fn skip(&mut self) -> anyhow::Result<()> {
-        let inner = self.inner.lock().await;
+    pub fn skip(&mut self) -> anyhow::Result<()> {
+        let inner = self.inner.lock();
 
         if let Some(handle) = &inner.current_track {
             handle.stop()?;
@@ -174,27 +187,27 @@ impl Queue {
         Ok(())
     }
 
-    pub async fn current(&self) -> Option<TrackHandle> {
-        let inner = self.inner.lock().await;
+    pub fn current(&self) -> Option<TrackHandle> {
+        let inner = self.inner.lock();
 
         inner.current_track.clone()
     }
 
-    pub async fn current_queue(&self) -> Vec<QueuedTrack> {
-        let inner = self.inner.lock().await;
+    pub fn current_queue(&self) -> Vec<QueuedTrack> {
+        let inner = self.inner.lock();
 
-        inner.tracks.iter().map(|input| input.clone()).collect()
+        inner.tracks.iter().cloned().collect()
     }
 
-    pub async fn dequeue(&self, index: usize) -> Option<QueuedTrack> {
-        self.modify_queue(|vq| vq.remove(index)).await
+    pub fn dequeue(&self, index: usize) -> Option<QueuedTrack> {
+        self.modify_queue(|vq| vq.remove(index))
     }
 
-    pub async fn modify_queue<F, O>(&self, func: F) -> O
+    pub fn modify_queue<F, O>(&self, func: F) -> O
     where
         F: FnOnce(&mut VecDeque<QueuedTrack>) -> O,
     {
-        let mut inner = self.inner.lock().await;
+        let mut inner = self.inner.lock();
 
         func(&mut inner.tracks)
     }

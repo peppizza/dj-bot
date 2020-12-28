@@ -24,7 +24,7 @@ async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
             let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
             let mut queue_container = queue_container_lock.write().await;
             let queue = queue_container.remove(&guild_id).unwrap();
-            queue.stop().await;
+            queue.stop();
 
             let channel = channel_container.remove(&guild_id).unwrap();
 

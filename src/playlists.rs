@@ -2,11 +2,12 @@ use std::fmt::Formatter;
 
 use serde::Deserialize;
 
+use anyhow::anyhow;
 use tokio::process::Command;
 
 #[derive(Debug, Deserialize)]
 pub struct YTPlayListResponse {
-    pub url: String,
+    pub title: String,
 }
 
 #[derive(Debug)]
@@ -27,7 +28,7 @@ impl std::fmt::Display for YTPlayListError {
 
 impl std::error::Error for YTPlayListError {}
 
-pub async fn get_list_of_urls(url: String) -> anyhow::Result<Vec<YTPlayListResponse>> {
+pub async fn get_list_of_urls(url: &str) -> anyhow::Result<Vec<YTPlayListResponse>> {
     let output = Command::new("youtube-dl")
         .args(&["-j", "--flat-playlist", &url])
         .output()
@@ -44,6 +45,36 @@ pub async fn get_list_of_urls(url: String) -> anyhow::Result<Vec<YTPlayListRespo
         }
 
         Ok(json_output)
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct YTDLMetadata {
+    pub title: String,
+    pub uploader: String,
+    pub duration: f32,
+    pub webpage_url: String,
+}
+
+pub async fn get_ytdl_metadata(search: &str) -> anyhow::Result<YTDLMetadata> {
+    let output = Command::new("youtube-dl")
+        .args(&[
+            "--skip-download",
+            "--print-json",
+            &format!("ytsearch:{}", search),
+        ])
+        .output()
+        .await?;
+
+    if !output.status.success() {
+        Err(anyhow!(
+            "Could not fetch ytdl metadata, {:?}",
+            String::from_utf8(output.stderr)
+        ))
+    } else {
+        let output = String::from_utf8(output.stdout)?;
+        let json: YTDLMetadata = serde_json::from_str(&output)?;
+        Ok(json)
     }
 }
 

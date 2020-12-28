@@ -248,7 +248,7 @@ dependencies = [
 [[package]]
 name = "command_attr"
 version = "0.3.2"
-source = "git+https://github.com/serenity-rs/serenity?branch=current#649f8f2f660efb6c60ee95d725ede0941ca1b6c2"
+source = "git+https://github.com/serenity-rs/serenity?branch=current#51dc943b1fa343b9fd28d6c68de765774553a174"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1635,7 +1635,7 @@ dependencies = [
 [[package]]
 name = "serenity"
 version = "0.9.3"
-source = "git+https://github.com/serenity-rs/serenity?branch=current#649f8f2f660efb6c60ee95d725ede0941ca1b6c2"
+source = "git+https://github.com/serenity-rs/serenity?branch=current#51dc943b1fa343b9fd28d6c68de765774553a174"
 dependencies = [
  "async-trait",
  "async-tungstenite",
@@ -1662,7 +1662,7 @@ dependencies = [
 [[package]]
 name = "serenity-voice-model"
 version = "0.10.0"
-source = "git+https://github.com/serenity-rs/serenity?branch=current#649f8f2f660efb6c60ee95d725ede0941ca1b6c2"
+source = "git+https://github.com/serenity-rs/serenity?branch=current#51dc943b1fa343b9fd28d6c68de765774553a174"
 dependencies = [
  "bitflags 1.2.1",
  "enum_primitive",
@@ -1749,7 +1749,7 @@ dependencies = [
 [[package]]
 name = "songbird"
 version = "0.1.0"
-source = "git+https://github.com/serenity-rs/songbird?branch=current#2fc88a6ef1f950c17a076dd6e6c2f85f99607962"
+source = "git+https://github.com/peppizza/songbird?branch=current#47a1ea616791cad113e7dcef8a117f17cc66b2f4"
 dependencies = [
  "async-trait",
  "async-tungstenite",

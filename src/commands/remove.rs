@@ -18,18 +18,18 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let manager = songbird::get(ctx).await.unwrap().clone();
 
     if manager.get(guild_id).is_some() {
-        let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
-        if !queue.is_empty().await {
+        let mut queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
+        if !queue.is_empty() {
             if index == 0 {
-                queue.skip().await?;
+                queue.skip()?;
 
                 msg.channel_id.say(ctx, "Skipped the song").await?;
-            } else if index > queue.len().await {
+            } else if index > queue.len() {
                 msg.reply_ping(ctx, format!("There is no song at index: {}", index))
                     .await?;
                 return Ok(());
             } else {
-                let track = queue.dequeue(index).await.unwrap();
+                let track = queue.dequeue(index).unwrap();
                 let title = track.name;
 
                 msg.channel_id

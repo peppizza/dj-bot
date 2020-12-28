@@ -16,10 +16,10 @@ async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
     let manager = songbird::get(ctx).await.unwrap().clone();
 
     if manager.get(guild_id).is_some() {
-        let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
+        let mut queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
-        if queue.current().await.is_some() {
-            queue.skip().await?;
+        if queue.current().is_some() {
+            queue.skip()?;
         } else {
             msg.reply_ping(ctx, "No song currently playing").await?;
             return Ok(());
@@ -28,10 +28,7 @@ async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
         msg.channel_id
             .say(
                 ctx,
-                format!(
-                    "Song skipped: {} songs left in queue.",
-                    queue.len().await - 1
-                ),
+                format!("Song skipped: {} songs left in queue.", queue.len() - 1),
             )
             .await?;
     } else {

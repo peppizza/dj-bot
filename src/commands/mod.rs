@@ -21,14 +21,11 @@ pub mod stop;
 pub mod volume;
 
 mod util {
-    use std::{sync::Arc, time::Duration};
+    use std::time::Duration;
 
     use serenity::utils::MessageBuilder;
 
-    use songbird::{
-        input::Metadata,
-        tracks::{PlayMode, TrackHandle},
-    };
+    use songbird::tracks::{PlayMode, TrackHandle};
 
     pub fn format_duration_to_mm_ss(duration: Duration) -> String {
         let seconds = duration.as_secs() % 60;
@@ -43,7 +40,6 @@ mod util {
 
     pub async fn formatted_song_listing(
         title: &str,
-        duration: Duration,
         track: &TrackHandle,
         include_pos: bool,
         new_line: bool,
@@ -53,8 +49,6 @@ mod util {
 
         let is_playing = matches!(track_info.playing, PlayMode::Play);
 
-        let track_len_mm_ss = format_duration_to_mm_ss(duration);
-
         let mut response = MessageBuilder::new();
 
         if include_pos {
@@ -63,9 +57,9 @@ mod util {
             let track_pos_mm_ss = format_duration_to_mm_ss(track_pos);
 
             if is_playing {
-                response.push_bold(format!("[ {}/{} ]▶ ", track_pos_mm_ss, track_len_mm_ss));
+                response.push_bold(format!("[ {} ]▶ ", track_pos_mm_ss));
             } else {
-                response.push_bold(format!("[ {}/{} ]⏸", track_pos_mm_ss, track_len_mm_ss));
+                response.push_bold(format!("[ {} ]⏸", track_pos_mm_ss));
             }
 
             response.push(format!("{} ", title));
@@ -76,9 +70,7 @@ mod util {
 
             Ok(response)
         } else {
-            response
-                .push_bold(format!("[ {} ]", track_len_mm_ss))
-                .push(format!("{} ", title));
+            response.push(format!("{} ", title));
 
             let place_in_queue = place_in_queue.unwrap_or_default();
 

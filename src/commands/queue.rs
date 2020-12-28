@@ -4,7 +4,7 @@ use serenity::{
     prelude::*,
 };
 
-use super::util::{format_duration_to_mm_ss, formatted_song_listing};
+use super::util::formatted_song_listing;
 use crate::{checks::*, queue::get_queue_from_ctx_and_guild_id};
 
 #[command]
@@ -18,40 +18,35 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
 
     if manager.get(guild_id).is_some() {
         let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
-        let current_queue = queue.current_queue().await;
+        let current_queue = queue.current_queue();
 
-        if queue.is_empty().await {
+        if queue.is_empty() {
             msg.channel_id.say(ctx, "The queue is empty").await?;
             return Ok(());
         }
 
-        let mut metadata_list = Vec::new();
+        let mut title_list = Vec::new();
 
         for handle in current_queue {
-            let metadata = handle.metadata();
+            let metadata = handle.name.clone();
 
-            metadata_list.push(metadata);
+            title_list.push(metadata);
         }
 
-        let current = queue.current().await.unwrap();
+        let current = queue.current().unwrap();
 
         let metadata = current.metadata();
 
-        let mut response = formatted_song_listing(metadata, &current, true, true, None).await?;
+        let title = metadata.title.clone().unwrap();
 
-        metadata_list.remove(0);
+        let mut response = formatted_song_listing(&title, &current, true, true, None).await?;
 
-        for (idx, metadata) in metadata_list.iter().enumerate() {
-            let track_length = metadata.duration.unwrap_or_default();
-            let title = metadata.title.clone();
+        title_list.remove(0);
 
-            let len_mm_ss = format_duration_to_mm_ss(track_length);
+        for (idx, title) in title_list.iter().enumerate() {
+            response.push(format!("{} ", title));
 
-            response.push_bold(format!("[ {} ] ", len_mm_ss));
-
-            response.push(format!("{} ", title.unwrap_or_default()));
-
-            if idx != queue.len().await {
+            if idx != queue.len() {
                 response.push_mono(format!("{}", idx + 1)).push("\n\n");
             } else {
                 response.push_mono(format!("{}", idx + 1));

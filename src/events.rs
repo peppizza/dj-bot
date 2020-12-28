@@ -150,7 +150,7 @@ impl EventHandler for Handler {
                         if count_of_members == 1 {
                             let manager = songbird::get(&ctx).await.unwrap();
 
-                            if let Some(handler_lock) = manager.get(guild_id) {
+                            if manager.get(guild_id).is_some() {
                                 {
                                     let data = ctx.data.read().await;
                                     let channel_container_lock =
@@ -160,7 +160,7 @@ impl EventHandler for Handler {
                                         data.get::<QueueMap>().unwrap().clone();
                                     let mut queue_container = queue_container_lock.write().await;
                                     let queue = queue_container.remove(&guild_id).unwrap();
-                                    queue.stop().await;
+                                    queue.stop();
 
                                     let channel = channel_container.remove(&guild_id).unwrap();
 
@@ -279,26 +279,23 @@ impl EventHandler for Handler {
             let manager = songbird::get(&ctx).await.unwrap();
 
             if let Some(old) = old {
-                if old.channel_id.is_some() {
-                    if let Some(handler_lock) = manager.get(guild_id) {
-                        {
-                            let data = ctx.data.read().await;
-                            let channel_container_lock =
-                                data.get::<StopContainer>().unwrap().clone();
-                            let mut channel_container = channel_container_lock.lock().await;
-                            let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
-                            let mut queue_container = queue_container_lock.write().await;
-                            let queue = queue_container.remove(&guild_id).unwrap();
-                            queue.stop().await;
+                if old.channel_id.is_some() && manager.get(guild_id).is_some() {
+                    {
+                        let data = ctx.data.read().await;
+                        let channel_container_lock = data.get::<StopContainer>().unwrap().clone();
+                        let mut channel_container = channel_container_lock.lock().await;
+                        let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
+                        let mut queue_container = queue_container_lock.write().await;
+                        let queue = queue_container.remove(&guild_id).unwrap();
+                        queue.stop();
 
-                            let channel = channel_container.remove(&guild_id).unwrap();
+                        let channel = channel_container.remove(&guild_id).unwrap();
 
-                            channel.send_async(()).await.unwrap();
-                        }
-                        let _ = manager.remove(guild_id).await;
+                        channel.send_async(()).await.unwrap();
                     }
+                    let _ = manager.remove(guild_id).await;
                 }
-            } else if let Some(handler_lock) = manager.get(guild_id) {
+            } else if manager.get(guild_id).is_some() {
                 {
                     let data = ctx.data.read().await;
                     let channel_container_lock = data.get::<StopContainer>().unwrap().clone();
@@ -306,7 +303,7 @@ impl EventHandler for Handler {
                     let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
                     let mut queue_container = queue_container_lock.write().await;
                     let queue = queue_container.remove(&guild_id).unwrap();
-                    queue.stop().await;
+                    queue.stop();
 
                     let channel = channel_container.remove(&guild_id).unwrap();
 

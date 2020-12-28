@@ -46,7 +46,7 @@ async fn shuffle(ctx: &Context, msg: &Message) -> CommandResult {
     if manager.get(guild_id).is_some() {
         let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
-        if queue.is_empty().await {
+        if queue.is_empty() {
             msg.reply_mention(ctx, "The queue is currently empty")
                 .await?;
             return Ok(());
