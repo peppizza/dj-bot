@@ -309,8 +309,6 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 ctx.http.clone(),
             )
             .await?;
-
-        msg.reply(ctx, format!("{:?}", queue)).await?;
     };
 
     Ok(())
