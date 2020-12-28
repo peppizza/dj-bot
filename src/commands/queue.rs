@@ -3,6 +3,7 @@ use serenity::{
     model::prelude::*,
     prelude::*,
 };
+use songbird::input::Metadata;
 
 use super::util::formatted_song_listing;
 use crate::{checks::*, queue::get_queue_from_ctx_and_guild_id};

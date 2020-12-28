@@ -260,6 +260,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 let mut seconds = (length.as_secs() % 60).to_string();
                 let minutes = (length.as_secs() / 60) % 60;
                 let url = track_metadata.webpage_url;
+                let hours = (length.as_secs() / 60) / 60;
 
                 if seconds.len() < 2 {
                     seconds = format!("0{}", seconds);
@@ -274,7 +275,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                         (queue.len()).to_string(),
                         true,
                     ),
-                    ("Length", format!("{}:{}", minutes, seconds), true),
+                    ("Length", format!("{}:{}:{}", hours, minutes, seconds), true),
                 ]);
 
                 e.footer(|f| {
