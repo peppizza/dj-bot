@@ -141,6 +141,8 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                             uuid: Uuid::new_v4(),
                         },
                         handler_lock.clone(),
+                        msg.channel_id,
+                        ctx.http.clone(),
                     )
                     .await?;
             }
@@ -193,6 +195,8 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                             uuid: Uuid::new_v4(),
                         },
                         handler_lock.clone(),
+                        msg.channel_id,
+                        ctx.http.clone(),
                     )
                     .await?;
             }
@@ -217,6 +221,8 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                         uuid: Uuid::new_v4(),
                     },
                     handler_lock,
+                    msg.channel_id,
+                    ctx.http.clone(),
                 )
                 .await?;
 
@@ -299,6 +305,8 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     uuid: Uuid::new_v4(),
                 },
                 handler_lock,
+                msg.channel_id,
+                ctx.http.clone(),
             )
             .await?;
 

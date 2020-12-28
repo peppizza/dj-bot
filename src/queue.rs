@@ -1,6 +1,7 @@
 use std::{
     collections::{HashMap, VecDeque},
     sync::Arc,
+    time::Duration,
 };
 
 use anyhow::{anyhow, Result};
@@ -8,7 +9,8 @@ use parking_lot::Mutex;
 use serenity::{
     async_trait,
     client::Context,
-    model::id::GuildId,
+    http::Http,
+    model::id::{ChannelId, GuildId},
     prelude::{Mutex as AsyncMutex, RwLock, TypeMapKey},
 };
 use songbird::{
@@ -19,6 +21,8 @@ use songbird::{
 };
 use tracing::{info, warn};
 use uuid::Uuid;
+
+use crate::voice_events::TrackStartNotifier;
 
 #[derive(Debug, Clone)]
 pub struct QueuedTrack {
@@ -40,6 +44,8 @@ pub struct QueueCore {
 struct PlayNextTrack {
     remote_lock: Arc<Mutex<QueueCore>>,
     driver: Arc<AsyncMutex<Call>>,
+    chan_id: ChannelId,
+    http: Arc<Http>,
 }
 
 #[async_trait]
@@ -95,6 +101,15 @@ impl EventHandler for PlayNextTrack {
                     Self {
                         driver: self.driver.clone(),
                         remote_lock: self.remote_lock.clone(),
+                        chan_id: self.chan_id,
+                        http: self.http.clone(),
+                    },
+                );
+                let _ = handle.add_event(
+                    Event::Delayed(Duration::from_millis(5)),
+                    TrackStartNotifier {
+                        chan_id: self.chan_id,
+                        http: self.http.clone(),
                     },
                 );
                 track.set_uuid(next_track_uuid);
@@ -125,6 +140,8 @@ impl Queue {
         &self,
         input: QueuedTrack,
         driver: Arc<AsyncMutex<Call>>,
+        chan_id: ChannelId,
+        http: Arc<Http>,
     ) -> anyhow::Result<()> {
         let (search, input_uuid) = {
             let mut inner = self.inner.lock();
@@ -144,6 +161,8 @@ impl Queue {
                 PlayNextTrack {
                     driver: driver.clone(),
                     remote_lock: self.inner.clone(),
+                    chan_id,
+                    http,
                 },
             )?;
             track.set_uuid(input_uuid);
