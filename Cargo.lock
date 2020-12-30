@@ -1748,7 +1748,7 @@ dependencies = [
 [[package]]
 name = "songbird"
 version = "0.1.0"
-source = "git+https://github.com/peppizza/songbird?branch=current#47a1ea616791cad113e7dcef8a117f17cc66b2f4"
+source = "git+https://github.com/serenity-rs/songbird?branch=current#873458d28872d9b4106c78938b1ba698bd55f93c"
 dependencies = [
  "async-trait",
  "async-tungstenite",
@@ -1758,7 +1758,7 @@ dependencies = [
  "flume",
  "futures",
  "parking_lot",
- "rand 0.7.3",
+ "rand 0.8.0",
  "serde",
  "serde_json",
  "serenity",

@@ -14,9 +14,8 @@ use serenity::{
     prelude::{Mutex as AsyncMutex, RwLock, TypeMapKey},
 };
 use songbird::{
-    create_player,
     input::{Input, Restartable},
-    tracks::TrackHandle,
+    tracks::{create_player_with_uuid, TrackHandle},
     Call, Event, EventContext, EventHandler, TrackEvent,
 };
 use tracing::{info, warn};
@@ -95,7 +94,7 @@ impl EventHandler for PlayNextTrack {
                     }
                 };
 
-                let (mut track, mut handle) = create_player(input);
+                let (track, handle) = create_player_with_uuid(input, next_track_uuid);
                 let _ = handle.add_event(
                     Event::Track(TrackEvent::End),
                     Self {
@@ -112,8 +111,6 @@ impl EventHandler for PlayNextTrack {
                         http: self.http.clone(),
                     },
                 );
-                track.set_uuid(next_track_uuid);
-                handle.set_uuid(next_track_uuid);
                 let mut handler = self.driver.lock().await;
                 handler.play(track);
                 let mut inner = self.remote_lock.lock();
@@ -129,7 +126,7 @@ impl EventHandler for PlayNextTrack {
 }
 
 async fn get_input_from_queued_track(track: QueuedTrack) -> Result<Input> {
-    match Restartable::ytdl_search(&track.name).await {
+    match Restartable::ytdl_search(&track.name, true).await {
         Ok(r) => Ok(Input::from(r)),
         Err(e) => Err(anyhow!("{:?}", e)),
     }
@@ -151,11 +148,11 @@ impl Queue {
             (search, input_uuid)
         };
         if self.len() == 1 {
-            let input = match Restartable::ytdl_search(&search).await {
+            let input = match Restartable::ytdl_search(&search, true).await {
                 Ok(input) => input,
                 Err(e) => return Err(anyhow!("{:?}", e)),
             };
-            let (mut track, mut handle) = create_player(Input::from(input));
+            let (track, handle) = create_player_with_uuid(Input::from(input), input_uuid);
             handle.add_event(
                 Event::Track(TrackEvent::End),
                 PlayNextTrack {
@@ -165,8 +162,6 @@ impl Queue {
                     http,
                 },
             )?;
-            track.set_uuid(input_uuid);
-            handle.set_uuid(input_uuid);
             let mut handler = driver.lock().await;
             handler.play(track);
             let mut inner = self.inner.lock();

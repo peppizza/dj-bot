@@ -30,5 +30,5 @@ git = "https://github.com/serenity-rs/serenity"
 branch = "current"
 
 [dependencies.songbird]
-git = "https://github.com/peppizza/songbird"
+git = "https://github.com/serenity-rs/songbird"
 branch = "current"
