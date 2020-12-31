@@ -38,6 +38,13 @@ pub struct Queue {
 pub struct QueueCore {
     tracks: VecDeque<QueuedTrack>,
     current_track: Option<TrackHandle>,
+    next_track: Arc<AsyncMutex<Option<InputWithUuid>>>,
+}
+
+#[derive(Debug)]
+pub struct InputWithUuid {
+    input: Input,
+    uuid: Uuid,
 }
 
 struct PlayNextTrack {
@@ -73,29 +80,17 @@ impl EventHandler for PlayNextTrack {
             info!("{} tracks remain.", inner.tracks.len());
         }
 
-        let mut should_pop = false;
         loop {
             let next_track = {
-                let mut inner = self.remote_lock.lock();
-                if should_pop {
-                    inner.tracks.pop_front();
-                }
-                inner.tracks.front().cloned()
+                let inner = self.remote_lock.lock();
+
+                inner.next_track.clone()
             };
 
-            if let Some(next_track) = next_track {
-                let next_track_uuid = next_track.uuid;
-                let input = match get_input_from_queued_track(next_track).await {
-                    Ok(i) => i,
-                    Err(e) => {
-                        warn!("Could not play track {:?}", e);
-                        should_pop = true;
-                        continue;
-                    }
-                };
+            if let Some(next_track) = next_track.lock().await.as_ref() {
+                let next_track_uuid = next_track.uuid();
 
-                let (track, handle) = create_player_with_uuid(input, next_track_uuid);
-                let _ = handle.add_event(
+                let _ = next_track.add_event(
                     Event::Track(TrackEvent::End),
                     Self {
                         driver: self.driver.clone(),
@@ -104,7 +99,7 @@ impl EventHandler for PlayNextTrack {
                         http: self.http.clone(),
                     },
                 );
-                let _ = handle.add_event(
+                let _ = next_track.add_event(
                     Event::Delayed(Duration::from_millis(5)),
                     TrackStartNotifier {
                         chan_id: self.chan_id,
@@ -127,7 +122,7 @@ impl EventHandler for PlayNextTrack {
 
 async fn get_input_from_queued_track(track: QueuedTrack) -> Result<Input> {
     match Restartable::ytdl_search(&track.name, true).await {
-        Ok(r) => Ok(Input::from(r)),
+        Ok(r) => Ok(r.into()),
         Err(e) => Err(anyhow!("{:?}", e)),
     }
 }
@@ -166,6 +161,13 @@ impl Queue {
             handler.play(track);
             let mut inner = self.inner.lock();
             inner.current_track = Some(handle);
+        } else if self.len() == 2 {
+            let input = match Restartable::ytdl_search(&search, true).await {
+                Ok(i) => i,
+                Err(e) => return Err(anyhow!("{:?}", e)),
+            };
+            let mut inner = self.inner.lock();
+            inner.next_track = Some(input.into());
         }
         Ok(())
     }
