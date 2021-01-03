@@ -38,8 +38,8 @@ pub struct Queue {
 pub struct QueueCore {
     tracks: VecDeque<QueuedTrack>,
     current_track: Option<TrackHandle>,
+    next_track: Option<TrackHandle>,
 }
-
 struct PlayNextTrack {
     remote_lock: Arc<Mutex<QueueCore>>,
     driver: Arc<AsyncMutex<Call>>,
@@ -69,18 +69,20 @@ impl EventHandler for PlayNextTrack {
 
             inner.tracks.pop_front();
 
+            if let Some(next_track) = &inner.next_track {
+                let _ = next_track.play();
+                inner.current_track = Some(next_track.clone())
+            }
+
             info!("Queued track ended: {:?}.", ctx);
             info!("{} tracks remain.", inner.tracks.len());
         }
 
-        let mut should_pop = false;
         loop {
             let next_track = {
-                let mut inner = self.remote_lock.lock();
-                if should_pop {
-                    inner.tracks.pop_front();
-                }
-                inner.tracks.front().cloned()
+                let inner = self.remote_lock.lock();
+
+                inner.tracks.get(1).cloned()
             };
 
             if let Some(next_track) = next_track {
@@ -89,7 +91,8 @@ impl EventHandler for PlayNextTrack {
                     Ok(i) => i,
                     Err(e) => {
                         warn!("Could not play track {:?}", e);
-                        should_pop = true;
+                        let mut inner = self.remote_lock.lock();
+                        inner.tracks.remove(1);
                         continue;
                     }
                 };
@@ -111,23 +114,23 @@ impl EventHandler for PlayNextTrack {
                         http: self.http.clone(),
                     },
                 );
+                let _ = handle.pause();
                 let mut handler = self.driver.lock().await;
                 handler.play(track);
                 let mut inner = self.remote_lock.lock();
-                inner.current_track = Some(handle);
+                inner.next_track = Some(handle);
                 break;
             } else {
                 break;
             }
         }
-
         None
     }
 }
 
 async fn get_input_from_queued_track(track: QueuedTrack) -> Result<Input> {
     match Restartable::ytdl_search(&track.name, true).await {
-        Ok(r) => Ok(Input::from(r)),
+        Ok(r) => Ok(r.into()),
         Err(e) => Err(anyhow!("{:?}", e)),
     }
 }
@@ -166,6 +169,26 @@ impl Queue {
             handler.play(track);
             let mut inner = self.inner.lock();
             inner.current_track = Some(handle);
+        } else if self.len() == 2 {
+            let input = match Restartable::ytdl_search(&search, true).await {
+                Ok(i) => i,
+                Err(e) => return Err(anyhow!("{:?}", e)),
+            };
+            let (track, handle) = create_player_with_uuid(Input::from(input), input_uuid);
+            handle.add_event(
+                Event::Track(TrackEvent::End),
+                PlayNextTrack {
+                    driver: driver.clone(),
+                    remote_lock: self.inner.clone(),
+                    chan_id,
+                    http,
+                },
+            )?;
+            handle.pause()?;
+            let mut handler = driver.lock().await;
+            handler.play(track);
+            let mut inner = self.inner.lock();
+            inner.next_track = Some(handle);
         }
         Ok(())
     }
