@@ -38,15 +38,8 @@ pub struct Queue {
 pub struct QueueCore {
     tracks: VecDeque<QueuedTrack>,
     current_track: Option<TrackHandle>,
-    next_track: Arc<AsyncMutex<Option<InputWithUuid>>>,
+    next_track: Option<TrackHandle>,
 }
-
-#[derive(Debug)]
-pub struct InputWithUuid {
-    input: Input,
-    uuid: Uuid,
-}
-
 struct PlayNextTrack {
     remote_lock: Arc<Mutex<QueueCore>>,
     driver: Arc<AsyncMutex<Call>>,
@@ -76,6 +69,11 @@ impl EventHandler for PlayNextTrack {
 
             inner.tracks.pop_front();
 
+            if let Some(next_track) = &inner.next_track {
+                let _ = next_track.play();
+                inner.current_track = Some(next_track.clone())
+            }
+
             info!("Queued track ended: {:?}.", ctx);
             info!("{} tracks remain.", inner.tracks.len());
         }
@@ -84,13 +82,23 @@ impl EventHandler for PlayNextTrack {
             let next_track = {
                 let inner = self.remote_lock.lock();
 
-                inner.next_track.clone()
+                inner.tracks.get(1).cloned()
             };
 
-            if let Some(next_track) = next_track.lock().await.as_ref() {
-                let next_track_uuid = next_track.uuid();
+            if let Some(next_track) = next_track {
+                let next_track_uuid = next_track.uuid;
+                let input = match get_input_from_queued_track(next_track).await {
+                    Ok(i) => i,
+                    Err(e) => {
+                        warn!("Could not play track {:?}", e);
+                        let mut inner = self.remote_lock.lock();
+                        inner.tracks.remove(1);
+                        continue;
+                    }
+                };
 
-                let _ = next_track.add_event(
+                let (track, handle) = create_player_with_uuid(input, next_track_uuid);
+                let _ = handle.add_event(
                     Event::Track(TrackEvent::End),
                     Self {
                         driver: self.driver.clone(),
@@ -99,23 +107,23 @@ impl EventHandler for PlayNextTrack {
                         http: self.http.clone(),
                     },
                 );
-                let _ = next_track.add_event(
+                let _ = handle.add_event(
                     Event::Delayed(Duration::from_millis(5)),
                     TrackStartNotifier {
                         chan_id: self.chan_id,
                         http: self.http.clone(),
                     },
                 );
+                let _ = handle.pause();
                 let mut handler = self.driver.lock().await;
                 handler.play(track);
                 let mut inner = self.remote_lock.lock();
-                inner.current_track = Some(handle);
+                inner.next_track = Some(handle);
                 break;
             } else {
                 break;
             }
         }
-
         None
     }
 }
@@ -166,8 +174,21 @@ impl Queue {
                 Ok(i) => i,
                 Err(e) => return Err(anyhow!("{:?}", e)),
             };
+            let (track, handle) = create_player_with_uuid(Input::from(input), input_uuid);
+            handle.add_event(
+                Event::Track(TrackEvent::End),
+                PlayNextTrack {
+                    driver: driver.clone(),
+                    remote_lock: self.inner.clone(),
+                    chan_id,
+                    http,
+                },
+            )?;
+            handle.pause()?;
+            let mut handler = driver.lock().await;
+            handler.play(track);
             let mut inner = self.inner.lock();
-            inner.next_track = Some(input.into());
+            inner.next_track = Some(handle);
         }
         Ok(())
     }
