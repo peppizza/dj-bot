@@ -181,8 +181,12 @@ impl Queue {
                     driver: driver.clone(),
                     remote_lock: self.inner.clone(),
                     chan_id,
-                    http,
+                    http: http.clone(),
                 },
+            )?;
+            handle.add_event(
+                Event::Track(TrackEvent::End),
+                TrackStartNotifier { chan_id, http },
             )?;
             handle.pause()?;
             let mut handler = driver.lock().await;
@@ -212,6 +216,10 @@ impl Queue {
             let _ = handle.stop();
         }
 
+        if let Some(handle) = &inner.next_track {
+            let _ = handle.stop();
+        }
+
         inner.tracks.clear();
     }
 
@@ -237,6 +245,18 @@ impl Queue {
     }
 
     pub fn dequeue(&self, index: usize) -> Option<QueuedTrack> {
+        if index == 0 {
+            let inner = self.inner.lock();
+            if let Some(handle) = &inner.current_track {
+                let _ = handle.stop();
+            }
+        } else if index == 1 {
+            let inner = self.inner.lock();
+            if let Some(handle) = &inner.next_track {
+                let _ = handle.stop();
+            }
+        }
+
         self.modify_queue(|vq| vq.remove(index))
     }
 
