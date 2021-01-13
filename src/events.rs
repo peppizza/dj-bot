@@ -171,7 +171,7 @@ impl EventHandler for Handler {
                         }
                     }
 
-                    tokio::time::delay_for(Duration::from_secs(5 * 60)).await;
+                    tokio::time::sleep(Duration::from_secs(5 * 60)).await;
                 }
             });
 
@@ -205,7 +205,7 @@ impl EventHandler for Handler {
                         .send()
                         .await;
 
-                    tokio::time::delay_for(Duration::from_secs(30 * 60)).await;
+                    tokio::time::sleep(Duration::from_secs(30 * 60)).await;
                 }
             });
 

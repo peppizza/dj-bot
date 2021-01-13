@@ -8,27 +8,21 @@ edition = "2018"
 
 [dependencies]
 dotenv = "0.15"
-tokio = { version = "0.2", features = ["macros", "rt-threaded", "io-std"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std", "process", "signal"] }
 tracing = "0.1"
 tracing-subscriber = "0.2"
 tracing-futures = "0.2"
 uuid = "0.8"
-sqlx = { version = "0.4", features = ["runtime-tokio-rustls", "postgres", "offline"] }
+sqlx = { git = "https://github.com/ant32/sqlx.git", branch = "tokio-1.0", features = ["runtime-tokio-rustls", "postgres", "offline"] }
 anyhow = "1.0"
 rand = "0.8"
 lazy_static = "1.4"
-reqwest = { version = "0.10", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-redis = { version = "0.17", default-features = false, features = ["tokio-comp", "aio", "tokio-rt-core"] }
+redis = { version = "0.19", features = ["tokio-comp"] }
 flume = { version = "0.10", features = ["async"] }
 sys-info = "0.7"
 parking_lot = "0.11"
-
-[dependencies.serenity]
-git = "https://github.com/serenity-rs/serenity"
-branch = "current"
-
-[dependencies.songbird]
-git = "https://github.com/serenity-rs/songbird"
-branch = "current"
+serenity = "0.10"
+songbird = "0.1"
