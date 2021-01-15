@@ -20,7 +20,9 @@ async fn restart(ctx: &Context, msg: &Message) -> CommandResult {
     if manager.get(guild_id).is_some() {
         let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
-        if let Some(track_handle) = queue.current() {
+        let current = { queue.current().lock().clone() };
+
+        if let Some(track_handle) = current {
             msg.channel_id.say(ctx, "Restarting track...").await?;
             track_handle.seek_time(Duration::from_secs(0))?;
         } else {

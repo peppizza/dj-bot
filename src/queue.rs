@@ -37,8 +37,8 @@ pub struct Queue {
 #[derive(Debug, Default)]
 pub struct QueueCore {
     tracks: VecDeque<QueuedTrack>,
-    current_track: Option<TrackHandle>,
-    next_track: Option<TrackHandle>,
+    current_track: Arc<Mutex<Option<TrackHandle>>>,
+    next_track: Mutex<Option<TrackHandle>>,
 }
 struct PlayNextTrack {
     remote_lock: Arc<Mutex<QueueCore>>,
@@ -69,9 +69,10 @@ impl EventHandler for PlayNextTrack {
 
             inner.tracks.pop_front();
 
-            if let Some(next_track) = &inner.next_track {
+            if let Some(next_track) = inner.next_track.lock().as_ref() {
                 let _ = next_track.play();
-                inner.current_track = Some(next_track.clone())
+                let mut current_track = inner.current_track.lock();
+                *current_track = Some(next_track.clone())
             }
 
             info!("Queued track ended: {:?}.", ctx);
@@ -117,8 +118,9 @@ impl EventHandler for PlayNextTrack {
                 let _ = handle.pause();
                 let mut handler = self.driver.lock().await;
                 handler.play(track);
-                let mut inner = self.remote_lock.lock();
-                inner.next_track = Some(handle);
+                let inner = self.remote_lock.lock();
+                let mut next_track = inner.next_track.lock();
+                *next_track = Some(handle);
                 break;
             } else {
                 break;
@@ -167,8 +169,9 @@ impl Queue {
             )?;
             let mut handler = driver.lock().await;
             handler.play(track);
-            let mut inner = self.inner.lock();
-            inner.current_track = Some(handle);
+            let inner = self.inner.lock();
+            let mut current_track = inner.current_track.lock();
+            *current_track = Some(handle);
         } else if self.len() == 2 {
             let input = match Restartable::ytdl_search(&search, true).await {
                 Ok(i) => i,
@@ -191,8 +194,9 @@ impl Queue {
             handle.pause()?;
             let mut handler = driver.lock().await;
             handler.play(track);
-            let mut inner = self.inner.lock();
-            inner.next_track = Some(handle);
+            let inner = self.inner.lock();
+            let mut next_track = inner.next_track.lock();
+            *next_track = Some(handle);
         }
         Ok(())
     }
@@ -212,11 +216,11 @@ impl Queue {
     pub fn stop(&self) {
         let mut inner = self.inner.lock();
 
-        if let Some(handle) = &inner.current_track {
+        if let Some(handle) = inner.current_track.lock().as_ref() {
             let _ = handle.stop();
         }
 
-        if let Some(handle) = &inner.next_track {
+        if let Some(handle) = inner.next_track.lock().as_ref() {
             let _ = handle.stop();
         }
 
@@ -226,13 +230,13 @@ impl Queue {
     pub fn skip(&mut self) -> anyhow::Result<()> {
         let inner = self.inner.lock();
 
-        if let Some(handle) = &inner.current_track {
+        if let Some(handle) = inner.current_track.lock().as_ref() {
             handle.stop()?;
         }
         Ok(())
     }
 
-    pub fn current(&self) -> Option<TrackHandle> {
+    pub fn current(&self) -> Arc<Mutex<Option<TrackHandle>>> {
         let inner = self.inner.lock();
 
         inner.current_track.clone()
@@ -247,12 +251,14 @@ impl Queue {
     pub fn dequeue(&self, index: usize) -> Option<QueuedTrack> {
         if index == 0 {
             let inner = self.inner.lock();
-            if let Some(handle) = &inner.current_track {
+            let current_track = inner.current_track.lock();
+            if let Some(handle) = current_track.as_ref() {
                 let _ = handle.stop();
             }
         } else if index == 1 {
             let inner = self.inner.lock();
-            if let Some(handle) = &inner.next_track {
+            let next_track = inner.next_track.lock();
+            if let Some(handle) = next_track.as_ref() {
                 let _ = handle.stop();
             }
         }

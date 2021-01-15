@@ -33,7 +33,7 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
             title_list.push(metadata);
         }
 
-        let current = queue.current().unwrap();
+        let current = { queue.current().lock().clone().unwrap() };
 
         let metadata = current.metadata();
 

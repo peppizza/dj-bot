@@ -21,8 +21,9 @@ async fn lyrics(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
             if manager.get(guild_id).is_some() {
                 let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
+                let current = { queue.current().lock().clone() };
 
-                if let Some(handle) = queue.current() {
+                if let Some(handle) = current {
                     let metadata = handle.metadata();
                     let title = metadata.title.clone().unwrap();
                     let artist = metadata.artist.clone().unwrap();

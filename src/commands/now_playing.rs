@@ -20,7 +20,9 @@ async fn now_playing(ctx: &Context, msg: &Message) -> CommandResult {
 
     if manager.get(guild_id).is_some() {
         let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
-        if let Some(current_track) = queue.current() {
+        let current = { queue.current().lock().clone() };
+
+        if let Some(current_track) = current {
             let metadata = current_track.metadata();
             let title = metadata.title.clone().unwrap();
 

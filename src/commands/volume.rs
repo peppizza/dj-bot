@@ -29,7 +29,9 @@ async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 let queue_container = queue_container_lock.read().await;
                 let queue = queue_container.get(&guild_id).unwrap();
 
-                if let Some(handle) = queue.current() {
+                let current = { queue.current().lock().clone() };
+
+                if let Some(handle) = current {
                     let mut current_volume = handle.get_info().await?.volume * 100f32;
                     current_volume = current_volume.round();
 
@@ -60,7 +62,9 @@ async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if manager.get(guild_id).is_some() {
         let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
-        if let Some(handle) = queue.current() {
+        let current = { queue.current().lock().clone() };
+
+        if let Some(handle) = current {
             handle.set_volume(new_volume)?;
         } else {
             msg.reply_ping(ctx, "Nothing playing").await?;

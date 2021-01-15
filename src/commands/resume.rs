@@ -21,7 +21,9 @@ async fn resume(ctx: &Context, msg: &Message) -> CommandResult {
     if manager.get(guild_id).is_some() {
         let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
-        if let Some(handle) = queue.current() {
+        let current = { queue.current().lock().clone() };
+
+        if let Some(handle) = current {
             match handle.get_info().await?.playing {
                 PlayMode::Pause => {
                     handle.play()?;

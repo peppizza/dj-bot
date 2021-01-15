@@ -18,8 +18,9 @@ async fn loop_command(ctx: &Context, msg: &Message) -> CommandResult {
 
     if manager.get(guild_id).is_some() {
         let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
+        let current = { queue.current().lock().clone() };
 
-        if let Some(handle) = queue.current() {
+        if let Some(handle) = current {
             if let LoopState::Infinite = handle.get_info().await?.loops {
                 handle.disable_loop()?;
 
