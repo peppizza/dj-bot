@@ -226,7 +226,10 @@ impl EventHandler for Handler {
                         "playing" => {
                             let guilds = cache.guilds().await;
                             for guild_id in guilds {
-                                let guild = guild_id.to_guild_cached(&cache).await.unwrap();
+                                let guild = match guild_id.to_guild_cached(&cache).await {
+                                    Some(guild) => guild,
+                                    None => continue,
+                                };
                                 let bot_channel_id =
                                     guild.voice_states.get(&cache.current_user_id().await);
 
