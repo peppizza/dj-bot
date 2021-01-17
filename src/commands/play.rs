@@ -14,7 +14,7 @@ use uuid::Uuid;
 
 use crate::{
     checks::*,
-    data::{ReqwestClientContainer, StopContainer},
+    data::ReqwestClientContainer,
     playlists::{get_list_of_spotify_tracks, get_list_of_urls, get_ytdl_metadata},
     queue::{get_queue_from_ctx_and_guild_id, QueueMap, QueuedTrack},
     voice_events::ChannelIdleChecker,
@@ -72,18 +72,12 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             if success.is_ok() {
                 let mut handler = handler_lock.lock().await;
                 let data = ctx.data.read().await;
-                let channel_container_lock = data.get::<StopContainer>().unwrap().clone();
-                let mut channel_container = channel_container_lock.lock().await;
                 let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
                 let mut queue_container = queue_container_lock.write().await;
                 let queue = queue_container.entry(guild_id).or_default();
 
-                let (tx, rx) = flume::bounded(1);
-
-                channel_container.insert(guild_id, tx);
-
                 handler.add_global_event(
-                    Event::Periodic(Duration::from_secs(60), None),
+                    Event::Periodic(Duration::from_secs(1), None),
                     ChannelIdleChecker {
                         handler_lock: handler_lock.clone(),
                         elapsed: Default::default(),
@@ -91,9 +85,6 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                         chan_id: msg.channel_id,
                         http: ctx.http.clone(),
                         cache: ctx.cache.clone(),
-                        channel: rx,
-                        is_loop_running: Default::default(),
-                        should_stop: Default::default(),
                         queue: queue.clone(),
                     },
                 );

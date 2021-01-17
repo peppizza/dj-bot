@@ -1,9 +1,8 @@
-use flume::Receiver;
 use serenity::{async_trait, client::Cache, http::Http, model::prelude::*, prelude::*};
 use songbird::{Call, Event, EventContext, EventHandler as VoiceEventHandler};
 
 use std::sync::{
-    atomic::{AtomicBool, AtomicUsize, Ordering},
+    atomic::{AtomicUsize, Ordering},
     Arc,
 };
 
@@ -45,9 +44,6 @@ pub struct ChannelIdleChecker {
     pub guild_id: GuildId,
     pub http: Arc<Http>,
     pub cache: Arc<Cache>,
-    pub channel: Receiver<()>,
-    pub is_loop_running: AtomicBool,
-    pub should_stop: Arc<AtomicBool>,
     pub queue: Queue,
 }
 
@@ -56,21 +52,7 @@ impl VoiceEventHandler for ChannelIdleChecker {
     async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
         let mut handler = self.handler_lock.lock().await;
 
-        if !self.is_loop_running.load(Ordering::Relaxed) {
-            let channel = self.channel.clone();
-            let should_stop = self.should_stop.clone();
-
-            tokio::spawn(async move {
-                channel.recv_async().await.unwrap();
-                should_stop.store(true, Ordering::Relaxed);
-            });
-
-            self.is_loop_running.store(true, Ordering::Relaxed);
-        }
-
-        if self.should_stop.load(Ordering::Relaxed) {
-            return Some(Event::Cancel);
-        }
+        tracing::error!("{}", self.elapsed.load(Ordering::Relaxed));
 
         if self.queue.is_empty() {
             if (self.elapsed.fetch_add(1, Ordering::Relaxed) + 1) > 5 {

@@ -192,7 +192,6 @@ async fn main() -> anyhow::Result<()> {
         data.insert::<PoolContainer>(pool);
         data.insert::<ReqwestClientContainer>(Default::default());
         data.insert::<DjOnlyContainer>(redis_con);
-        data.insert::<StopContainer>(Default::default());
         data.insert::<QueueMap>(Default::default());
     }
 

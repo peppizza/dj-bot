@@ -10,7 +10,7 @@ use tokio::io::{self, AsyncBufReadExt};
 use tracing::{debug, error, info};
 
 use crate::{
-    data::{PoolContainer, ReqwestClientContainer, ShardManagerContainer, StopContainer},
+    data::{PoolContainer, ReqwestClientContainer, ShardManagerContainer},
     db::{delete_guild, delete_user, insert_guild},
     queue::QueueMap,
 };
@@ -150,21 +150,10 @@ impl EventHandler for Handler {
                         if count_of_members == 1 {
                             let manager = songbird::get(&ctx).await.unwrap();
 
-                            if manager.get(guild_id).is_some() {
+                            if let Some(handler_lock) = manager.get(guild_id) {
                                 {
-                                    let data = ctx.data.read().await;
-                                    let channel_container_lock =
-                                        data.get::<StopContainer>().unwrap().clone();
-                                    let mut channel_container = channel_container_lock.lock().await;
-                                    let queue_container_lock =
-                                        data.get::<QueueMap>().unwrap().clone();
-                                    let mut queue_container = queue_container_lock.write().await;
-                                    let queue = queue_container.remove(&guild_id).unwrap();
-                                    queue.stop();
-
-                                    let channel = channel_container.remove(&guild_id).unwrap();
-
-                                    channel.send_async(()).await.unwrap();
+                                    let mut handler = handler_lock.lock().await;
+                                    handler.remove_all_global_events();
                                 }
                                 let _ = manager.remove(guild_id).await;
                             }
@@ -282,35 +271,29 @@ impl EventHandler for Handler {
             let manager = songbird::get(&ctx).await.unwrap();
 
             if let Some(old) = old {
-                if old.channel_id.is_some() && manager.get(guild_id).is_some() {
-                    {
-                        let data = ctx.data.read().await;
-                        let channel_container_lock = data.get::<StopContainer>().unwrap().clone();
-                        let mut channel_container = channel_container_lock.lock().await;
-                        let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
-                        let mut queue_container = queue_container_lock.write().await;
-                        let queue = queue_container.remove(&guild_id).unwrap();
-                        queue.stop();
-
-                        let channel = channel_container.remove(&guild_id).unwrap();
-
-                        channel.send_async(()).await.unwrap();
+                if old.channel_id.is_some() {
+                    if let Some(handler_lock) = manager.get(guild_id) {
+                        {
+                            let data = ctx.data.read().await;
+                            let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
+                            let mut queue_container = queue_container_lock.write().await;
+                            let queue = queue_container.remove(&guild_id).unwrap();
+                            queue.stop();
+                            let mut handler = handler_lock.lock().await;
+                            handler.remove_all_global_events();
+                        }
+                        let _ = manager.remove(guild_id).await;
                     }
-                    let _ = manager.remove(guild_id).await;
                 }
-            } else if manager.get(guild_id).is_some() {
+            } else if let Some(handler_lock) = manager.get(guild_id) {
                 {
                     let data = ctx.data.read().await;
-                    let channel_container_lock = data.get::<StopContainer>().unwrap().clone();
-                    let mut channel_container = channel_container_lock.lock().await;
                     let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
                     let mut queue_container = queue_container_lock.write().await;
                     let queue = queue_container.remove(&guild_id).unwrap();
                     queue.stop();
-
-                    let channel = channel_container.remove(&guild_id).unwrap();
-
-                    channel.send_async(()).await.unwrap();
+                    let mut handler = handler_lock.lock().await;
+                    handler.remove_all_global_events();
                 }
                 let _ = manager.remove(guild_id).await;
             }
