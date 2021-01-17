@@ -77,7 +77,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 let queue = queue_container.entry(guild_id).or_default();
 
                 handler.add_global_event(
-                    Event::Periodic(Duration::from_secs(1), None),
+                    Event::Periodic(Duration::from_secs(60), None),
                     ChannelIdleChecker {
                         handler_lock: handler_lock.clone(),
                         elapsed: Default::default(),
