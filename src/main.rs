@@ -38,7 +38,7 @@ use std::{collections::HashSet, env};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{
-    db_testing::*, dj_only::*, help::*, join::*, loop_command::*, lyrics::*, mute::*,
+    db_testing::*, dj_only::*, help::*, info::*, join::*, loop_command::*, lyrics::*, mute::*,
     now_playing::*, pause::*, perms::*, ping::*, play::*, prefix::*, queue::*, remove::*,
     restart::*, resume::*, shuffle::*, skip::*, stop::*, volume::*,
 };
@@ -76,7 +76,10 @@ struct General;
     get_perms_in_guild,
     delete_author,
     delete_current_guild,
-    insert_all_guilds
+    insert_all_guilds,
+    sys_info,
+    in_voice_channel,
+    guild_count
 )]
 struct Owner;
 

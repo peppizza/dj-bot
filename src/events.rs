@@ -6,11 +6,11 @@ use std::{
     },
     time::Duration,
 };
-use tokio::io::{self, AsyncBufReadExt};
+
 use tracing::{debug, error, info};
 
 use crate::{
-    data::{DjOnlyContainer, PoolContainer, ReqwestClientContainer, ShardManagerContainer},
+    data::{DjOnlyContainer, PoolContainer, ReqwestClientContainer},
     db::{delete_guild, delete_user, insert_guild},
     dj_only_store::delete_guild_from_store,
     queue::QueueMap,
@@ -201,58 +201,6 @@ impl EventHandler for Handler {
                         .await;
 
                     tokio::time::sleep(Duration::from_secs(30 * 60)).await;
-                }
-            });
-
-            let ctx3 = Arc::clone(&ctx);
-
-            tokio::spawn(async move {
-                let ctx = Arc::clone(&ctx3);
-                let cache = ctx.cache.clone();
-
-                let stdin = io::stdin();
-                let stdin = io::BufReader::new(stdin);
-                let mut lines = stdin.lines();
-                while let Some(input) = lines.next_line().await.unwrap() {
-                    match input.to_lowercase().as_ref() {
-                        "guilds" => {
-                            println!("{}", cache.guild_count().await)
-                        }
-                        "playing" => {
-                            let guilds = cache.guilds().await;
-                            for guild_id in guilds {
-                                let guild = match guild_id.to_guild_cached(&cache).await {
-                                    Some(guild) => guild,
-                                    None => continue,
-                                };
-                                let bot_channel_id =
-                                    guild.voice_states.get(&cache.current_user_id().await);
-
-                                if let Some(bot_channel_id) = bot_channel_id {
-                                    println!("{:?}", bot_channel_id.guild_id);
-                                }
-                            }
-                        }
-                        "sys-info" => {
-                            let cpu_load = sys_info::loadavg().unwrap();
-                            let mem_use = sys_info::mem_info().unwrap();
-
-                            println!("CPU load average, {:.2}%", cpu_load.one * 10.0);
-                            println!(
-                                "Memory Usage, {:.2} MB Free out of {:.2} MB",
-                                mem_use.free as f32 / 1000.0,
-                                mem_use.total as f32 / 1000.0
-                            )
-                        }
-                        "quit" | "q" => {
-                            let data = ctx.data.read().await;
-                            let shard_manager_lock =
-                                data.get::<ShardManagerContainer>().unwrap().clone();
-                            let mut shard_manager = shard_manager_lock.lock().await;
-                            shard_manager.shutdown_all().await;
-                        }
-                        _ => {}
-                    }
                 }
             });
 
