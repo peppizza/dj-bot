@@ -10,8 +10,9 @@ use tokio::io::{self, AsyncBufReadExt};
 use tracing::{debug, error, info};
 
 use crate::{
-    data::{PoolContainer, ReqwestClientContainer, ShardManagerContainer},
+    data::{DjOnlyContainer, PoolContainer, ReqwestClientContainer, ShardManagerContainer},
     db::{delete_guild, delete_user, insert_guild},
+    dj_only_store::delete_guild_from_store,
     queue::QueueMap,
 };
 
@@ -46,6 +47,7 @@ impl EventHandler for Handler {
             info!("Removed from guild: {}", incomplete.id);
             let data = ctx.data.read().await;
             let pool = data.get::<PoolContainer>().unwrap();
+            let con = data.get::<DjOnlyContainer>().unwrap();
 
             match delete_guild(pool, incomplete.id.into()).await {
                 Ok(guild_id) => {
@@ -57,6 +59,10 @@ impl EventHandler for Handler {
                 }
                 Err(why) => error!("Could not remove db entries: {:?}", why),
             };
+
+            if let Err(e) = delete_guild_from_store(con, incomplete.id).await {
+                error!("Error removing dj_only from deleted guild: {:?}", e);
+            }
         }
     }
 
