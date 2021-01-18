@@ -47,9 +47,7 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
         let data = ctx.data.read().await;
         let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
         let mut queue_container = queue_container_lock.write().await;
-        let queue = queue_container
-            .insert(guild_id, Default::default())
-            .unwrap();
+        let queue = queue_container.entry(guild_id).or_default();
 
         handler.add_global_event(
             Event::Periodic(Duration::from_secs(60), None),
@@ -60,7 +58,7 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
                 guild_id,
                 http: ctx.http.clone(),
                 cache: ctx.cache.clone(),
-                queue,
+                queue: queue.clone(),
             },
         );
 
