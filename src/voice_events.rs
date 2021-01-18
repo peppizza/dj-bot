@@ -52,8 +52,6 @@ impl VoiceEventHandler for ChannelIdleChecker {
     async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
         let mut handler = self.handler_lock.lock().await;
 
-        tracing::error!("{}", self.elapsed.load(Ordering::Relaxed));
-
         if self.queue.is_empty() {
             if (self.elapsed.fetch_add(1, Ordering::Relaxed) + 1) > 5 {
                 let _ = handler.leave().await;
