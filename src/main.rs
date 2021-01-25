@@ -144,6 +144,11 @@ async fn main() -> anyhow::Result<()> {
         Ok(info) => {
             let mut owners = HashSet::new();
             owners.insert(info.owner.id);
+            if let Some(team) = info.team {
+                for member in team.members {
+                    owners.insert(member.user.id);
+                }
+            }
 
             owners
         }
