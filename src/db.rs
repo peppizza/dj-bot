@@ -1,4 +1,4 @@
-use sqlx::postgres::{PgDone, PgPool};
+use sqlx::postgres::{PgPool, PgQueryResult};
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
 pub enum UserPerm {
@@ -168,7 +168,7 @@ pub async fn delete_guild(pool: &PgPool, guild_id: i64) -> anyhow::Result<Option
     Ok(Some(rec.guild_id))
 }
 
-pub async fn insert_guild(pool: &PgPool, guild_id: i64) -> anyhow::Result<PgDone> {
+pub async fn insert_guild(pool: &PgPool, guild_id: i64) -> anyhow::Result<PgQueryResult> {
     let rec = sqlx::query!(
         r#"
         INSERT INTO guilds
