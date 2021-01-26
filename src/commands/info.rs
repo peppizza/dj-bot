@@ -58,7 +58,11 @@ async fn in_voice_channel(ctx: &Context, msg: &Message) -> CommandResult {
         }
     }
 
-    msg.channel_id.say(ctx, res.build()).await?;
+    if res.0.is_empty() {
+        msg.channel_id.say(ctx, "Not in any vc's").await?;
+    } else {
+        msg.channel_id.say(ctx, res.build()).await?;
+    }
 
     Ok(())
 }
