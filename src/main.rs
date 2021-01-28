@@ -65,7 +65,8 @@ use queue::QueueMap;
     now_playing,
     shuffle,
     donate,
-    lyrics
+    lyrics,
+    bot_info
 )]
 struct General;
 
@@ -118,6 +119,10 @@ async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
         }
         e => warn!("{:?}", e),
     }
+}
+
+pub mod built_info {
+    include!(concat!(env!("OUT_DIR"), "/built.rs"));
 }
 
 #[tokio::main]

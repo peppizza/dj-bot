@@ -5,6 +5,8 @@ use serenity::{
     utils::MessageBuilder,
 };
 
+use crate::{built_info, checks::*};
+
 #[command]
 #[owners_only]
 #[help_available(false)]
@@ -73,6 +75,33 @@ async fn in_voice_channel(ctx: &Context, msg: &Message) -> CommandResult {
 async fn guild_count(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id
         .say(ctx, ctx.cache.guild_count().await)
+        .await?;
+
+    Ok(())
+}
+
+#[command]
+#[checks(not_blacklisted)]
+#[description = "Shows information about the bot"]
+#[bucket = "global"]
+async fn bot_info(ctx: &Context, msg: &Message) -> CommandResult {
+    msg.channel_id
+        .send_message(ctx, |m| {
+            m.embed(|e| {
+                e.title("DJ Bot info");
+
+                e.fields(vec![
+                    ("Bot version", built_info::PKG_VERSION, true),
+                    (
+                        "Built using",
+                        &format!("`{}`", built_info::RUSTC_VERSION),
+                        true,
+                    ),
+                ]);
+
+                e
+            })
+        })
         .await?;
 
     Ok(())
