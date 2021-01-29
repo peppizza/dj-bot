@@ -19,10 +19,9 @@ async fn stop(ctx: &Context, msg: &Message) -> CommandResult {
     if let Some(handler_lock) = manager.get(guild_id) {
         {
             let data = ctx.data.read().await;
-            let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
-            let mut queue_container = queue_container_lock.write().await;
+            let queue_container = data.get::<QueueMap>().unwrap().clone();
             let queue = queue_container.remove(&guild_id).unwrap();
-            queue.stop();
+            queue.1.stop();
 
             let mut handler = handler_lock.lock().await;
             handler.remove_all_global_events();

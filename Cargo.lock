@@ -423,6 +423,7 @@ version = "1.0.0"
 dependencies = [
  "anyhow",
  "built",
+ "dashmap",
  "dotenv",
  "lazy_static",
  "parking_lot",

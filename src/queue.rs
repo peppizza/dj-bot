@@ -1,17 +1,14 @@
-use std::{
-    collections::{HashMap, VecDeque},
-    sync::Arc,
-    time::Duration,
-};
+use std::{collections::VecDeque, sync::Arc, time::Duration};
 
 use anyhow::{anyhow, Result};
+use dashmap::DashMap;
 use parking_lot::Mutex;
 use serenity::{
     async_trait,
     client::Context,
     http::Http,
     model::id::{ChannelId, GuildId},
-    prelude::{Mutex as AsyncMutex, RwLock, TypeMapKey},
+    prelude::{Mutex as AsyncMutex, TypeMapKey},
 };
 use songbird::{
     input::{Input, Restartable},
@@ -279,13 +276,12 @@ impl Queue {
 pub struct QueueMap;
 
 impl TypeMapKey for QueueMap {
-    type Value = Arc<RwLock<HashMap<GuildId, Queue>>>;
+    type Value = Arc<DashMap<GuildId, Queue>>;
 }
 
 pub async fn get_queue_from_ctx_and_guild_id(ctx: &Context, guild_id: GuildId) -> Queue {
     let data = ctx.data.read().await;
-    let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
-    let queue_container = queue_container_lock.read().await;
+    let queue_container = data.get::<QueueMap>().unwrap().clone();
     let queue = queue_container.get(&guild_id).unwrap().clone();
 
     queue

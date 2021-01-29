@@ -229,10 +229,9 @@ impl EventHandler for Handler {
                     if let Some(handler_lock) = manager.get(guild_id) {
                         {
                             let data = ctx.data.read().await;
-                            let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
-                            let mut queue_container = queue_container_lock.write().await;
+                            let queue_container = data.get::<QueueMap>().unwrap().clone();
                             let queue = queue_container.remove(&guild_id).unwrap();
-                            queue.stop();
+                            queue.1.stop();
                             let mut handler = handler_lock.lock().await;
                             handler.remove_all_global_events();
                         }
@@ -242,10 +241,9 @@ impl EventHandler for Handler {
             } else if let Some(handler_lock) = manager.get(guild_id) {
                 {
                     let data = ctx.data.read().await;
-                    let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
-                    let mut queue_container = queue_container_lock.write().await;
+                    let queue_container = data.get::<QueueMap>().unwrap().clone();
                     let queue = queue_container.remove(&guild_id).unwrap();
-                    queue.stop();
+                    queue.1.stop();
                     let mut handler = handler_lock.lock().await;
                     handler.remove_all_global_events();
                 }

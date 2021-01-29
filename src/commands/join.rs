@@ -45,8 +45,7 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
     if success.is_ok() {
         let mut handler = handler_lock.lock().await;
         let data = ctx.data.read().await;
-        let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
-        let mut queue_container = queue_container_lock.write().await;
+        let queue_container = data.get::<QueueMap>().unwrap().clone();
         let queue = queue_container.entry(guild_id).or_default();
 
         handler.add_global_event(

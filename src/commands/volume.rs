@@ -25,8 +25,7 @@ async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
             if manager.get(guild_id).is_some() {
                 let data = ctx.data.read().await;
-                let queue_container_lock = data.get::<QueueMap>().unwrap().clone();
-                let queue_container = queue_container_lock.read().await;
+                let queue_container = data.get::<QueueMap>().unwrap().clone();
                 let queue = queue_container.get(&guild_id).unwrap();
 
                 let current = { queue.current().lock().clone() };
