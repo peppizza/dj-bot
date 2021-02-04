@@ -6,7 +6,7 @@ use serenity::{
 
 use crate::{
     checks::*,
-    data::PoolContainer,
+    data::{PoolContainer, PrefixCache},
     db::{delete_guild_prefix, get_guild_prefix, set_guild_prefix},
 };
 
@@ -18,12 +18,11 @@ use crate::{
 async fn prefix(ctx: &Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
     let pool = data.get::<PoolContainer>().unwrap();
+    let prefix_cache = data.get::<PrefixCache>().unwrap().clone();
 
     let guild_id = msg.guild_id.unwrap();
 
-    let prefix = get_guild_prefix(pool, guild_id.into())
-        .await?
-        .unwrap_or_else(|| "~".to_string());
+    let prefix = get_guild_prefix(pool, prefix_cache, guild_id.into()).await?;
 
     if prefix.len() > 5 {
         msg.channel_id
@@ -54,6 +53,7 @@ async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     let data = ctx.data.read().await;
     let pool = data.get::<PoolContainer>().unwrap();
+    let prefix_cache = data.get::<PrefixCache>().unwrap().clone();
 
     let guild_id = msg.guild_id.unwrap();
 
@@ -64,12 +64,12 @@ async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     }
 
     if &prefix == "~" {
-        delete_guild_prefix(pool, guild_id.into()).await?;
+        delete_guild_prefix(pool, prefix_cache, guild_id.into()).await?;
         msg.channel_id.say(ctx, "Reset the servers prefix").await?;
         return Ok(());
     }
 
-    let prefix = set_guild_prefix(pool, guild_id.into(), &prefix).await?;
+    let prefix = set_guild_prefix(pool, prefix_cache, guild_id.into(), &prefix).await?;
 
     msg.channel_id
         .say(ctx, format!("Set the guilds prefix to {}", prefix.prefix))

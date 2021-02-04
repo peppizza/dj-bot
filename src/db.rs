@@ -1,4 +1,10 @@
+use std::convert::TryInto;
+
+use serenity::model::id::GuildId;
 use sqlx::postgres::{PgPool, PgQueryResult};
+use tracing::warn;
+
+use crate::data::PrefixCacheInternal;
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
 pub enum UserPerm {
@@ -190,9 +196,12 @@ pub struct GuildIdPrefix {
 
 pub async fn set_guild_prefix(
     pool: &PgPool,
+    prefix_cache: PrefixCacheInternal,
     guild_id: i64,
     prefix: &str,
 ) -> anyhow::Result<GuildIdPrefix> {
+    prefix_cache.insert(GuildId(guild_id.try_into().unwrap()), prefix.to_string());
+
     let rec = sqlx::query_as!(
         GuildIdPrefix,
         r#"
@@ -207,28 +216,47 @@ pub async fn set_guild_prefix(
     .fetch_one(pool)
     .await?;
 
+    warn!("{:?}", prefix_cache);
+
     Ok(rec)
 }
 
-pub async fn get_guild_prefix(pool: &PgPool, guild_id: i64) -> anyhow::Result<Option<String>> {
-    let rec = match sqlx::query!(
-        r#"
+pub async fn get_guild_prefix(
+    pool: &PgPool,
+    prefix_cache: PrefixCacheInternal,
+    guild_id: i64,
+) -> anyhow::Result<String> {
+    if let Some(prefix) = prefix_cache.get(&GuildId(guild_id.try_into().unwrap())) {
+        warn!("{:?}", prefix_cache);
+        Ok(prefix.clone())
+    } else {
+        let prefix = sqlx::query!(
+            r#"
         SELECT prefix
         FROM prefixes
         WHERE guild_id = $1"#,
-        guild_id
-    )
-    .fetch_optional(pool)
-    .await?
-    {
-        Some(rec) => rec,
-        None => return Ok(None),
-    };
+            guild_id
+        )
+        .fetch_optional(pool)
+        .await?
+        .map(|rec| rec.prefix)
+        .unwrap_or_else(|| "~".to_string());
 
-    Ok(Some(rec.prefix))
+        prefix_cache.insert(GuildId(guild_id.try_into().unwrap()), prefix.clone());
+
+        warn!("{:?}", prefix_cache);
+
+        Ok(prefix)
+    }
 }
 
-pub async fn delete_guild_prefix(pool: &PgPool, guild_id: i64) -> anyhow::Result<()> {
+pub async fn delete_guild_prefix(
+    pool: &PgPool,
+    prefix_cache: PrefixCacheInternal,
+    guild_id: i64,
+) -> anyhow::Result<()> {
+    prefix_cache.insert(GuildId(guild_id.try_into().unwrap()), "~".to_string());
+
     sqlx::query!(
         r#"
         DELETE FROM prefixes
@@ -237,6 +265,8 @@ pub async fn delete_guild_prefix(pool: &PgPool, guild_id: i64) -> anyhow::Result
     )
     .execute(pool)
     .await?;
+
+    warn!("{:?}", prefix_cache);
 
     Ok(())
 }

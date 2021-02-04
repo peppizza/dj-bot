@@ -166,13 +166,19 @@ async fn main() -> anyhow::Result<()> {
                 .prefix("")
                 .dynamic_prefix(|ctx, msg| {
                     async move {
-                        let data = ctx.data.read().await;
-                        let pool = data.get::<PoolContainer>().unwrap();
                         let guild_id = msg.guild_id.unwrap();
-                        let prefix = get_guild_prefix(pool, guild_id.into())
-                            .await
-                            .ok()?
-                            .unwrap_or_else(|| "~".to_string());
+                        let data = ctx.data.read().await;
+                        let prefix_cache = data.get::<PrefixCache>().unwrap().clone();
+                        let pool = data.get::<PoolContainer>().unwrap();
+                        let prefix =
+                            match get_guild_prefix(pool, prefix_cache, guild_id.into()).await {
+                                Ok(prefix) => prefix,
+                                Err(e) => {
+                                    tracing::error!("Problem getting prefix!!! {:?}", e);
+                                    return None;
+                                }
+                            };
+
                         Some(prefix)
                     }
                     .boxed()
@@ -180,6 +186,15 @@ async fn main() -> anyhow::Result<()> {
                 .case_insensitivity(true)
         })
         .on_dispatch_error(dispatch_error)
+        .after(|ctx, msg, cmd_name, error| {
+            async move {
+                if let Err(e) = error {
+                    warn!("Error with command {}, {:?}", cmd_name, e);
+                    let _ = msg.channel_id.say(ctx, format!("Command returned an error, {:?}, please report this on the support server https://discord.gg/5YytF9fPHr", e)).await;
+                }
+            }
+            .boxed()
+        })
         .bucket("global", |b| b.delay(3).limit_for(LimitedFor::User))
         .await
         .help(&MY_HELP)
@@ -206,6 +221,7 @@ async fn main() -> anyhow::Result<()> {
         data.insert::<ReqwestClientContainer>(Default::default());
         data.insert::<DjOnlyContainer>(redis_con);
         data.insert::<QueueMap>(Default::default());
+        data.insert::<PrefixCache>(Default::default());
     }
 
     let shard_manager = client.shard_manager.clone();
