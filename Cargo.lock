@@ -152,6 +152,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
+name = "bb8"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dae93eccab998c4b8703e3a6bbaa1714c38e445ebacb4bede25d0408521e293c"
+dependencies = [
+ "async-trait",
+ "futures-channel",
+ "futures-util",
+ "parking_lot",
+ "tokio",
+]
+
+[[package]]
+name = "bb8-redis"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a77bf264e0442cbf0644595e64f1f8e15f1e5fe99c9d0959072e54ffbd2b9d5"
+dependencies = [
+ "async-trait",
+ "bb8",
+ "redis",
+]
+
+[[package]]
 name = "bitflags"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -417,13 +441,13 @@ name = "dj-bot"
 version = "1.0.0"
 dependencies = [
  "anyhow",
+ "bb8-redis",
  "built",
  "dashmap",
  "dotenv",
  "lazy_static",
  "parking_lot",
  "rand 0.8.3",
- "redis",
  "reqwest",
  "serde",
  "serde_json",
@@ -1389,7 +1413,6 @@ dependencies = [
  "itoa",
  "percent-encoding",
  "pin-project-lite",
- "sha1",
  "tokio",
  "tokio-util",
  "url",
@@ -1671,12 +1694,6 @@ dependencies = [
  "digest",
  "opaque-debug",
 ]
-
-[[package]]
-name = "sha1"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2579985fda508104f7587689507983eadd6a6e84dd35d6d115361f530916fa0d"
 
 [[package]]
 name = "sha2"
@@ -2076,6 +2093,7 @@ dependencies = [
  "mio",
  "num_cpus",
  "once_cell",
+ "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
  "tokio-macros",

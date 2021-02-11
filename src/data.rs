@@ -1,5 +1,5 @@
+use bb8_redis::{bb8::Pool, RedisConnectionManager};
 use dashmap::DashMap;
-use redis::aio::MultiplexedConnection;
 use serenity::{client::bridge::gateway::ShardManager, model::id::GuildId, prelude::*};
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -23,8 +23,10 @@ impl TypeMapKey for ReqwestClientContainer {
 
 pub struct DjOnlyContainer;
 
+pub type RedisPool = Pool<RedisConnectionManager>;
+
 impl TypeMapKey for DjOnlyContainer {
-    type Value = MultiplexedConnection;
+    type Value = RedisPool;
 }
 
 pub struct PrefixCache;

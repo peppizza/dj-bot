@@ -20,11 +20,11 @@ async fn dj_only(ctx: &Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
     let redis_con = data.get::<DjOnlyContainer>().unwrap().clone();
 
-    if check_if_guild_in_store(&redis_con, guild_id).await? {
-        delete_guild_from_store(&redis_con, guild_id).await?;
+    if check_if_guild_in_store(redis_con.clone(), guild_id).await? {
+        delete_guild_from_store(redis_con.clone(), guild_id).await?;
         msg.channel_id.say(ctx, "Disabled dj only mode").await?;
     } else {
-        insert_guild_into_store(&redis_con, guild_id).await?;
+        insert_guild_into_store(redis_con, guild_id).await?;
         msg.channel_id.say(ctx, "Enabled dj only mode").await?;
     }
 

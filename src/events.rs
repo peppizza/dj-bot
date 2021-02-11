@@ -47,7 +47,7 @@ impl EventHandler for Handler {
             info!("Removed from guild: {}", incomplete.id);
             let data = ctx.data.read().await;
             let pool = data.get::<PoolContainer>().unwrap();
-            let con = data.get::<DjOnlyContainer>().unwrap();
+            let con = data.get::<DjOnlyContainer>().unwrap().clone();
 
             match delete_guild(pool, incomplete.id.into()).await {
                 Ok(guild_id) => {

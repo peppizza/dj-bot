@@ -10,6 +10,7 @@ mod playlists;
 mod queue;
 mod voice_events;
 
+use bb8_redis::{bb8, RedisConnectionManager};
 use db::get_guild_prefix;
 use serenity::{
     client::bridge::gateway::GatewayIntents,
@@ -33,7 +34,7 @@ use songbird::SerenityInit;
 use sqlx::PgPool;
 use tracing::{info, warn};
 
-use std::{collections::HashSet, env};
+use std::{collections::HashSet, env, time::Duration};
 
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
@@ -137,9 +138,12 @@ async fn main() -> anyhow::Result<()> {
 
     let pool = PgPool::connect(&env::var("DATABASE_URL")?).await?;
 
-    let redis_client = redis::Client::open(env::var("REDIS_URL")?)?;
+    let manager = RedisConnectionManager::new(env::var("REDIS_URL")?)?;
 
-    let redis_con = redis_client.get_multiplexed_tokio_connection().await?;
+    let redis_pool = bb8::Pool::builder()
+        .connection_timeout(Duration::from_secs(5))
+        .build(manager)
+        .await?;
 
     let token = env::var("DISCORD_TOKEN")?;
 
@@ -219,7 +223,7 @@ async fn main() -> anyhow::Result<()> {
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
         data.insert::<PoolContainer>(pool);
         data.insert::<ReqwestClientContainer>(Default::default());
-        data.insert::<DjOnlyContainer>(redis_con);
+        data.insert::<DjOnlyContainer>(redis_pool);
         data.insert::<QueueMap>(Default::default());
         data.insert::<PrefixCache>(Default::default());
     }
