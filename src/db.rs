@@ -2,7 +2,7 @@ use std::convert::TryInto;
 
 use serenity::model::id::GuildId;
 use sqlx::postgres::{PgPool, PgQueryResult};
-use tracing::warn;
+use tracing::debug;
 
 use crate::data::PrefixCacheInternal;
 
@@ -216,7 +216,7 @@ pub async fn set_guild_prefix(
     .fetch_one(pool)
     .await?;
 
-    warn!("{:?}", prefix_cache);
+    debug!("{:?}", prefix_cache);
 
     Ok(rec)
 }
@@ -227,7 +227,7 @@ pub async fn get_guild_prefix(
     guild_id: i64,
 ) -> anyhow::Result<String> {
     if let Some(prefix) = prefix_cache.get(&GuildId(guild_id.try_into().unwrap())) {
-        warn!("{:?}", prefix_cache);
+        debug!("{:?}", prefix_cache);
         Ok(prefix.clone())
     } else {
         let prefix = sqlx::query!(
@@ -244,7 +244,7 @@ pub async fn get_guild_prefix(
 
         prefix_cache.insert(GuildId(guild_id.try_into().unwrap()), prefix.clone());
 
-        warn!("{:?}", prefix_cache);
+        debug!("{:?}", prefix_cache);
 
         Ok(prefix)
     }
@@ -266,7 +266,7 @@ pub async fn delete_guild_prefix(
     .execute(pool)
     .await?;
 
-    warn!("{:?}", prefix_cache);
+    debug!("{:?}", prefix_cache);
 
     Ok(())
 }
