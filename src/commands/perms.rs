@@ -76,10 +76,10 @@ async fn perms_check(
             if let UserPerm::Admin = perm_level {
                 Ok(())
             } else {
-                Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()))
+                Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()))
             }
         } else {
-            Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()))
+            Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()))
         }
     }
 }

@@ -30,7 +30,7 @@ async fn not_blacklisted(
         if perm_level != UserPerm::Blacklisted {
             Ok(())
         } else {
-            Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()))
+            Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()))
         }
     }
 }
@@ -53,10 +53,10 @@ async fn dj_only(
             if guild_has_dj_mode_enabled(ctx, msg).await? || perm_level >= UserPerm::DJ {
                 Ok(())
             } else {
-                Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()))
+                Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()))
             }
         } else {
-            Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()))
+            Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()))
         }
     }
 }
@@ -70,6 +70,7 @@ async fn admin_only(
     _: &CommandOptions,
 ) -> StdResult<(), Reason> {
     let guild = msg.guild(ctx).await.unwrap();
+
     if check_if_administrator(ctx, guild, msg.author.id).await {
         Ok(())
     } else {
@@ -77,7 +78,7 @@ async fn admin_only(
         if perm_level == UserPerm::Admin {
             Ok(())
         } else {
-            Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.clone()))
+            Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()))
         }
     }
 }
