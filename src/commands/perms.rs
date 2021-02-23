@@ -73,10 +73,9 @@ async fn perms_check(
             .await
             .unwrap()
         {
-            if let UserPerm::Admin = perm_level {
-                Ok(())
-            } else {
-                Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()))
+            match perm_level {
+                UserPerm::Admin => Ok(()),
+                _ => Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string())),
             }
         } else {
             Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()))
