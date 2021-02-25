@@ -458,6 +458,7 @@ dependencies = [
  "sys-info",
  "tokio",
  "tracing",
+ "tracing-log",
  "tracing-subscriber",
  "uuid",
 ]

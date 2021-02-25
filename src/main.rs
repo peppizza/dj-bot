@@ -33,6 +33,7 @@ use songbird::SerenityInit;
 
 use sqlx::PgPool;
 use tracing::{info, warn};
+use tracing_log::LogTracer;
 
 use std::{collections::HashSet, env, time::Duration};
 
@@ -129,6 +130,8 @@ pub mod built_info {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv::dotenv()?;
+
+    LogTracer::init()?;
 
     let subscriber = FmtSubscriber::builder()
         .with_env_filter(EnvFilter::from_default_env())
