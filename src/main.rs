@@ -49,6 +49,11 @@ use data::*;
 use events::Handler;
 use queue::QueueMap;
 
+use mimalloc::MiMalloc;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
+
 #[group]
 #[commands(
     ping,
