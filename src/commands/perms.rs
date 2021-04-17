@@ -102,7 +102,7 @@ async fn list(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let level = match args.single_quoted::<String>() {
         Ok(level) => level,
         Err(_) => {
-            msg.reply_ping(ctx, "Please provide a permission you would like to list the members of, availible options are: `admin`, `dj`, and `blacklist`").await?;
+            msg.reply_ping(ctx, "Please provide a permission you would like to list the members of, available options are: `admin`, `dj`, and `blacklist`").await?;
             return Ok(());
         }
     };
