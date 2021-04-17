@@ -6,16 +6,16 @@ use anyhow::anyhow;
 use tokio::process::Command;
 
 #[derive(Debug, Deserialize)]
-pub struct YTPlayListResponse {
+pub struct YtPlayListResponse {
     pub title: String,
 }
 
 #[derive(Debug)]
-pub enum YTPlayListError {
+pub enum YtPlayListError {
     ListOfUrlsError(Vec<u8>),
 }
 
-impl std::fmt::Display for YTPlayListError {
+impl std::fmt::Display for YtPlayListError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::ListOfUrlsError(e) => {
@@ -26,21 +26,21 @@ impl std::fmt::Display for YTPlayListError {
     }
 }
 
-impl std::error::Error for YTPlayListError {}
+impl std::error::Error for YtPlayListError {}
 
-pub async fn get_list_of_urls(url: &str) -> anyhow::Result<Vec<YTPlayListResponse>> {
+pub async fn get_list_of_urls(url: &str) -> anyhow::Result<Vec<YtPlayListResponse>> {
     let output = Command::new("youtube-dl")
         .args(&["-j", "--flat-playlist", &url])
         .output()
         .await?;
 
     if !output.status.success() {
-        Err(YTPlayListError::ListOfUrlsError(output.stderr).into())
+        Err(YtPlayListError::ListOfUrlsError(output.stderr).into())
     } else {
         let output = String::from_utf8(output.stdout)?;
         let mut json_output = vec![];
         for line in output.lines() {
-            let json: YTPlayListResponse = serde_json::from_str(line)?;
+            let json: YtPlayListResponse = serde_json::from_str(line)?;
             json_output.push(json);
         }
 
@@ -49,14 +49,14 @@ pub async fn get_list_of_urls(url: &str) -> anyhow::Result<Vec<YTPlayListRespons
 }
 
 #[derive(Debug, Deserialize)]
-pub struct YTDLMetadata {
+pub struct YtdlMetadata {
     pub title: String,
     pub uploader: String,
     pub duration: f32,
     pub webpage_url: String,
 }
 
-pub async fn get_ytdl_metadata(search: &str) -> anyhow::Result<YTDLMetadata> {
+pub async fn get_ytdl_metadata(search: &str) -> anyhow::Result<YtdlMetadata> {
     let output = Command::new("youtube-dl")
         .args(&[
             "--skip-download",
@@ -73,7 +73,7 @@ pub async fn get_ytdl_metadata(search: &str) -> anyhow::Result<YTDLMetadata> {
         ))
     } else {
         let output = String::from_utf8(output.stdout)?;
-        let json: YTDLMetadata = serde_json::from_str(&output)?;
+        let json: YtdlMetadata = serde_json::from_str(&output)?;
         Ok(json)
     }
 }

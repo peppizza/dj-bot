@@ -50,7 +50,7 @@ async fn dj_only(
         check_if_already_playing(ctx, msg).await?;
         let perm_level = get_author_perm_level(ctx, msg).await?;
         if perm_level != UserPerm::Blacklisted {
-            if guild_has_dj_mode_enabled(ctx, msg).await? || perm_level >= UserPerm::DJ {
+            if guild_has_dj_mode_enabled(ctx, msg).await? || perm_level >= UserPerm::Dj {
                 Ok(())
             } else {
                 Err(Reason::User(INSUFFICIENT_PERMISSIONS_MESSAGE.to_string()))

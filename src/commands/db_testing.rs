@@ -3,6 +3,7 @@ use serenity::{
     model::prelude::*,
     prelude::*,
 };
+use std::convert::TryInto;
 
 use crate::{
     data::PoolContainer,
@@ -39,7 +40,7 @@ async fn set_author_perms(ctx: &Context, msg: &Message, mut args: Args) -> Comma
         pool,
         msg.guild_id.unwrap().into(),
         msg.author.id.into(),
-        perm_level.into(),
+        perm_level.try_into().unwrap(),
     )
     .await;
 
@@ -57,8 +58,12 @@ async fn get_perms_in_guild(ctx: &Context, msg: &Message, mut args: Args) -> Com
 
     let perm_level = args.single::<i16>()?;
 
-    let list_of_users =
-        get_all_users_with_perm(pool, msg.guild_id.unwrap().into(), perm_level.into()).await;
+    let list_of_users = get_all_users_with_perm(
+        pool,
+        msg.guild_id.unwrap().into(),
+        perm_level.try_into().unwrap(),
+    )
+    .await;
 
     msg.reply_ping(ctx, format!("{:?}", list_of_users)).await?;
 

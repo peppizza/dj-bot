@@ -112,7 +112,7 @@ async fn list(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             list_users_with_perm(ctx, msg, UserPerm::Admin).await?;
         }
         "dj" => {
-            list_users_with_perm(ctx, msg, UserPerm::DJ).await?;
+            list_users_with_perm(ctx, msg, UserPerm::Dj).await?;
         }
         "blacklist" => {
             list_users_with_perm(ctx, msg, UserPerm::Blacklisted).await?;
@@ -181,7 +181,7 @@ async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let perm_level = match args.single_quoted::<String>() {
         Ok(level) => level,
         Err(_) => {
-            msg.reply_ping(ctx, "Please provide a permission you would like to set the member to, availible options are: `admin`, `dj`, `user`, and `blacklist`").await?;
+            msg.reply_ping(ctx, "Please provide a permission you would like to set the member to, available options are: `admin`, `dj`, `user`, and `blacklist`").await?;
             return Ok(());
         }
     };
@@ -191,7 +191,7 @@ async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             set_user_perm_from_command(ctx, msg, UserPerm::Admin, user).await?;
         }
         "dj" => {
-            set_user_perm_from_command(ctx, msg, UserPerm::DJ, user).await?;
+            set_user_perm_from_command(ctx, msg, UserPerm::Dj, user).await?;
         }
         "user" => {
             let data = ctx.data.read().await;

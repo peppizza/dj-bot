@@ -1,4 +1,4 @@
-use std::convert::TryInto;
+use std::convert::{TryFrom, TryInto};
 
 use serenity::model::id::GuildId;
 use sqlx::postgres::{PgPool, PgQueryResult};
@@ -10,29 +10,31 @@ use crate::data::PrefixCacheInternal;
 pub enum UserPerm {
     Blacklisted,
     User,
-    DJ,
+    Dj,
     Admin,
 }
 
-impl From<i16> for UserPerm {
-    fn from(i: i16) -> Self {
+impl TryFrom<i16> for UserPerm {
+    type Error = &'static str;
+
+    fn try_from(i: i16) -> Result<Self, Self::Error> {
         match i {
-            0 => Self::User,
-            1 => Self::Blacklisted,
-            2 => Self::DJ,
-            3 => Self::Admin,
-            _ => panic!("Can only be 0-3"),
+            0 => Ok(Self::User),
+            1 => Ok(Self::Blacklisted),
+            2 => Ok(Self::Dj),
+            3 => Ok(Self::Admin),
+            _ => Err("Must be a value from 0-3"),
         }
     }
 }
 
-impl Into<i16> for UserPerm {
-    fn into(self) -> i16 {
-        match self {
-            Self::User => 0,
-            Self::Blacklisted => 1,
-            Self::DJ => 2,
-            Self::Admin => 3,
+impl From<UserPerm> for i16 {
+    fn from(other: UserPerm) -> i16 {
+        match other {
+            UserPerm::User => 0,
+            UserPerm::Blacklisted => 1,
+            UserPerm::Dj => 2,
+            UserPerm::Admin => 3,
         }
     }
 }
@@ -43,8 +45,8 @@ mod tests {
 
     #[test]
     fn test_ord() {
-        assert!(UserPerm::Admin > UserPerm::DJ);
-        assert!(UserPerm::DJ > UserPerm::User);
+        assert!(UserPerm::Admin > UserPerm::Dj);
+        assert!(UserPerm::Dj > UserPerm::User);
         assert!(UserPerm::User > UserPerm::Blacklisted);
     }
 }
@@ -69,7 +71,7 @@ pub async fn get_user_perms(
         None => return Ok(None),
     };
 
-    Ok(Some(rec.perm_level.into()))
+    Ok(Some(rec.perm_level.try_into().unwrap()))
 }
 
 pub async fn set_user_perms(
@@ -94,7 +96,7 @@ pub async fn set_user_perms(
     .fetch_one(pool)
     .await?;
 
-    Ok(rec.perm_level.into())
+    Ok(rec.perm_level.try_into().unwrap())
 }
 
 #[derive(Debug)]
