@@ -69,8 +69,6 @@ mod util {
             if new_line {
                 response.push("\n\n");
             }
-
-            Ok(response)
         } else {
             response.push(format!("{} ", title));
 
@@ -83,8 +81,7 @@ mod util {
             } else {
                 response.push_mono(format!("{}", place_in_queue + 1));
             }
-
-            Ok(response)
         }
+        Ok(response)
     }
 }

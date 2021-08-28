@@ -9,7 +9,13 @@ build = "build.rs"
 
 [dependencies]
 dotenv = "0.15"
-tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std", "process", "signal"] }
+tokio = { version = "1", features = [
+    "macros",
+    "rt-multi-thread",
+    "io-std",
+    "process",
+    "signal",
+] }
 tracing = "0.1"
 tracing-subscriber = "0.2"
 tracing-log = { version = "0.1", features = ["env_logger"] }
@@ -18,16 +24,19 @@ sqlx = { version = "0.5", features = ["runtime-tokio-rustls", "postgres"] }
 anyhow = "1.0"
 rand = "0.8"
 lazy_static = "1.4"
-reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.11", default-features = false, features = [
+    "json",
+    "rustls-tls",
+] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-bb8-redis = "0.9"
+bb8-redis = "0.10"
 sys-info = "0.9"
 parking_lot = "0.11"
 serenity = { version = "0.10", features = ["absolute_ratelimits"] }
-songbird = "0.1"
+songbird = "0.2"
 dashmap = "4.0"
 mimalloc = "0.1"
 
 [build-dependencies]
-built = "0.4.4"
+built = "0.5.1"

@@ -1,34 +1,19 @@
 use serenity::{async_trait, model::prelude::*, prelude::*};
-use std::{
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
-    time::Duration,
-};
 
-use tracing::{debug, error, info};
+use tracing::{error, info};
 
 use crate::{
-    data::{DjOnlyContainer, PoolContainer, ReqwestClientContainer},
+    data::{DjOnlyContainer, PoolContainer},
     db::{delete_guild, delete_user, insert_guild},
     dj_only_store::delete_guild_from_store,
     queue::QueueMap,
 };
 
-lazy_static::lazy_static! {
-    static ref DBL_API_KEY: String = std::env::var("DBL_API_KEY").expect("Expected DBL_API_KEY in dotenv file");
-}
-
-pub struct Handler {
-    is_loop_running: AtomicBool,
-}
+pub struct Handler;
 
 impl Handler {
     pub fn new() -> Self {
-        Self {
-            is_loop_running: AtomicBool::new(false),
-        }
+        Self {}
     }
 }
 
@@ -103,50 +88,6 @@ impl EventHandler for Handler {
                 }
             }
             Err(e) => error!("Could not remove db entries: {:?}", e),
-        }
-    }
-
-    async fn cache_ready(&self, ctx: Context, _guilds: Vec<GuildId>) {
-        debug!("Cache built");
-
-        let ctx = Arc::new(ctx);
-
-        if !self.is_loop_running.load(Ordering::Relaxed) {
-            let ctx1 = Arc::clone(&ctx);
-
-            tokio::spawn(async move {
-                let ctx = Arc::clone(&ctx1);
-
-                loop {
-                    debug!("Running presence update loop");
-
-                    let server_count = ctx.cache.guild_count().await;
-
-                    ctx.set_activity(Activity::listening(&format!("{} servers", server_count)))
-                        .await;
-
-                    let data = ctx.data.read().await;
-                    let client = data.get::<ReqwestClientContainer>().unwrap().clone();
-
-                    let shard_id = ctx.shard_id;
-                    let shard_count = ctx.cache.shard_count().await;
-
-                    let _ = client
-                        .post("https://top.gg/api/bots/stats")
-                        .json(&serde_json::json!({
-                            "server_count": server_count,
-                            "shard_id": shard_id,
-                            "shard_count": shard_count,
-                        }))
-                        .bearer_auth(DBL_API_KEY.clone())
-                        .send()
-                        .await;
-
-                    tokio::time::sleep(Duration::from_secs(30 * 60)).await;
-                }
-            });
-
-            self.is_loop_running.store(true, Ordering::Relaxed);
         }
     }
 
