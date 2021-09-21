@@ -29,7 +29,7 @@ impl std::fmt::Display for YtPlayListError {
 impl std::error::Error for YtPlayListError {}
 
 pub async fn get_list_of_urls(url: &str) -> anyhow::Result<Vec<YtPlayListResponse>> {
-    let output = Command::new("youtube-dl")
+    let output = Command::new("yt-dlp")
         .args(&["-j", "--flat-playlist", url])
         .output()
         .await?;
@@ -57,7 +57,7 @@ pub struct YtdlMetadata {
 }
 
 pub async fn get_ytdl_metadata(search: &str) -> anyhow::Result<YtdlMetadata> {
-    let output = Command::new("youtube-dl")
+    let output = Command::new("yt-dlp")
         .args(&[
             "--skip-download",
             "--print-json",
