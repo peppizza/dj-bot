@@ -1,0 +1,6 @@
+[submodule "songbird"]
+	path = songbird
+	url = https://github.com/peppizza/songbird-yt-dlp.git
+[submodule "audiopus_sys"]
+	path = audiopus_sys
+	url = https://github.com/peppizza/audiopus_sys.git
