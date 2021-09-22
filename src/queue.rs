@@ -70,6 +70,9 @@ impl EventHandler for PlayNextTrack {
                 let _ = next_track.play();
                 let mut current_track = inner.current_track.lock();
                 *current_track = Some(next_track.clone())
+            } else {
+                let mut current_track = inner.current_track.lock();
+                *current_track = None;
             }
 
             info!("Queued track ended: {:?}.", ctx);
