@@ -92,6 +92,8 @@ async fn get_spotify_access_token(client: reqwest::Client) -> anyhow::Result<Acc
 
     let token: AccessToken = res.json().await?;
 
+    tracing::error!("{:?}", token);
+
     Ok(token)
 }
 

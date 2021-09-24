@@ -9,7 +9,6 @@ use serenity::{
 
 use songbird::Event;
 
-use tracing::warn;
 use uuid::Uuid;
 
 use crate::{
@@ -233,21 +232,76 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
         let queue = get_queue_from_ctx_and_guild_id(ctx, guild_id).await;
 
-        let track_metadata = match get_ytdl_metadata(&url).await {
-            Ok(m) => m,
-            Err(e) => {
-                warn!("YTDL error {:?}", e);
-                reply_msg
-                    .edit(ctx, |m| {
-                        m.suppress_embeds(true)
-                            .content(format!("Could not find track {}", url))
-                    })
-                    .await?;
-                return Ok(());
-            }
-        };
+        if queue.current().lock().is_none() {
+            queue
+                .add(
+                    QueuedTrack {
+                        name: url,
+                        uuid: Uuid::new_v4(),
+                    },
+                    handler_lock,
+                    msg.channel_id,
+                    ctx.http.clone(),
+                )
+                .await?;
 
-        reply_msg
+            let track_metadata = queue.current().lock().as_ref().unwrap().metadata().clone();
+
+            reply_msg
+                .edit(ctx, |m| {
+                    m.embed(|e| {
+                        let title = track_metadata.title.unwrap();
+                        let artist = track_metadata.channel.unwrap();
+                        let length = track_metadata.duration.unwrap();
+                        let mut seconds = (length.as_secs() % 60).to_string();
+                        let minutes = (length.as_secs() / 60) % 60;
+                        let url = track_metadata.source_url.unwrap();
+                        let hours = (length.as_secs() / 60) / 60;
+
+                        if seconds.len() < 2 {
+                            seconds = format!("0{}", seconds);
+                        }
+
+                        e.title(format!("Added song: {}", title));
+                        e.fields(vec![
+                            ("Title:", format!("[{}]({})", title, url), true),
+                            ("Artist", artist, true),
+                            (
+                                "Spot in queue",
+                                (queue.len()).to_string(),
+                                true,
+                            ),
+                            ("Length", format!("{}:{}:{}", hours, minutes, seconds), true),
+                        ]);
+
+                        e.footer(|f| {
+                            f.icon_url("https://avatars0.githubusercontent.com/u/35662205?s=460&u=a154620c136da5ad4acc9c473864cc6349a4e874&v=4");
+                            f.text("If you like my work consider donating, ~donate");
+
+                            f
+                        });
+
+                        e.color(Color::DARK_GREEN);
+
+                        e
+                    })
+                })
+                .await?;
+        } else {
+            queue
+                .add(
+                    QueuedTrack {
+                        name: url.clone(),
+                        uuid: Uuid::new_v4(),
+                    },
+                    handler_lock,
+                    msg.channel_id,
+                    ctx.http.clone(),
+                )
+                .await?;
+            let track_metadata = get_ytdl_metadata(&url).await?;
+
+            reply_msg
         .edit(ctx, |m| {
             m.embed(|e| {
                 let title = track_metadata.title;
@@ -287,18 +341,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             })
         })
         .await?;
-
-        queue
-            .add(
-                QueuedTrack {
-                    name: url,
-                    uuid: Uuid::new_v4(),
-                },
-                handler_lock,
-                msg.channel_id,
-                ctx.http.clone(),
-            )
-            .await?;
+        }
     };
 
     Ok(())
