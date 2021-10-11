@@ -87,6 +87,7 @@ struct AccessToken {
 async fn get_spotify_access_token(client: reqwest::Client) -> anyhow::Result<AccessToken> {
     let res = client
         .get("https://open.spotify.com/get_access_token")
+        .header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36")
         .send()
         .await?;
 
