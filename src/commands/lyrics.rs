@@ -27,7 +27,7 @@ async fn lyrics(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     let metadata = handle.metadata();
                     let title = metadata.title.clone().unwrap();
                     let artist = metadata.artist.clone().unwrap();
-                    format!("{} {}", title, artist)
+                    format!("{title} {artist}")
                 } else {
                     msg.channel_id.say(ctx, "Nothing playing").await?;
                     return Ok(());
@@ -40,14 +40,14 @@ async fn lyrics(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     };
 
     msg.channel_id
-        .say(ctx, format!("Searching the lyrics for {}", name_of_song))
+        .say(ctx, format!("Searching the lyrics for {name_of_song}"))
         .await?;
 
     let song_data = match get_lyrics(ctx, name_of_song.clone()).await? {
         Some(data) => data,
         None => {
             msg.channel_id
-                .say(ctx, format!("Could not find lyrics for {}", name_of_song))
+                .say(ctx, format!("Could not find lyrics for {name_of_song}"))
                 .await?;
             return Ok(());
         }
@@ -69,7 +69,7 @@ async fn lyrics(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 .send_message(ctx, |m| {
                     m.embed(|e| {
                         if idx == 0 {
-                            e.title(format!("Lyrics for `{}` by `{}`", name, artist));
+                            e.title(format!("Lyrics for `{name}` by `{artist}`"));
                         }
 
                         e.description(sub);
@@ -89,7 +89,7 @@ async fn lyrics(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         msg.channel_id
             .send_message(ctx, |m| {
                 m.embed(|e| {
-                    e.title(format!("Lyrics for `{}` by `{}`", name, artist));
+                    e.title(format!("Lyrics for `{name}` by `{artist}`"));
 
                     e.description(lyrics);
 

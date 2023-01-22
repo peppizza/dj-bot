@@ -44,7 +44,7 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
         title_list.remove(0);
 
         for (idx, title) in title_list.iter().enumerate() {
-            response.push(format!("{} ", title));
+            response.push(format!("{title} "));
 
             if idx != queue.len() {
                 response.push_mono(format!("{}", idx + 1)).push("\n\n");

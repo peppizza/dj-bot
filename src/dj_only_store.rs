@@ -53,7 +53,7 @@ mod tests {
 
         let result = check_if_guild_in_store(pool, GuildId(123456789)).await;
 
-        println!("{:?}", result);
+        println!("{result:?}");
     }
 
     #[tokio::test]

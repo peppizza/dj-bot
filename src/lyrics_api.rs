@@ -62,7 +62,7 @@ mod tests {
 
         let data: LyricResponse = res.json().await.unwrap();
 
-        println!("{:?}", data);
+        println!("{data:?}");
     }
 }
 

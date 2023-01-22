@@ -34,9 +34,9 @@ mod util {
         let hours = (duration.as_secs() / 60) / 60;
 
         if seconds < 10 {
-            format!("{}:{}:0{}", hours, minutes, seconds)
+            format!("{hours}:{minutes}:0{seconds}")
         } else {
-            format!("{}:{}:{}", hours, minutes, seconds)
+            format!("{hours}:{minutes}:{seconds}")
         }
     }
 
@@ -59,18 +59,18 @@ mod util {
             let track_pos_mm_ss = format_duration_to_mm_ss(track_pos);
 
             if is_playing {
-                response.push_bold(format!("[ {} ]▶ ", track_pos_mm_ss));
+                response.push_bold(format!("[ {track_pos_mm_ss} ]▶ "));
             } else {
-                response.push_bold(format!("[ {} ]⏸", track_pos_mm_ss));
+                response.push_bold(format!("[ {track_pos_mm_ss} ]⏸"));
             }
 
-            response.push(format!("{} ", title));
+            response.push(format!("{title} "));
 
             if new_line {
                 response.push("\n\n");
             }
         } else {
-            response.push(format!("{} ", title));
+            response.push(format!("{title} "));
 
             let place_in_queue = place_in_queue.unwrap_or_default();
 

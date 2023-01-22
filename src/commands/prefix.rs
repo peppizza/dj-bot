@@ -31,7 +31,7 @@ async fn prefix(ctx: &Context, msg: &Message) -> CommandResult {
     }
 
     msg.channel_id
-        .say(ctx, format!("The current prefix is {}", prefix))
+        .say(ctx, format!("The current prefix is {prefix}"))
         .await?;
 
     Ok(())

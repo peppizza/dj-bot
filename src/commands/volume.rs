@@ -35,7 +35,7 @@ async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                     current_volume = current_volume.round();
 
                     msg.channel_id
-                        .say(ctx, format!("The current volume is {}", current_volume))
+                        .say(ctx, format!("The current volume is {current_volume}"))
                         .await?;
                 } else {
                     msg.reply_ping(ctx, "Nothing playing").await?;

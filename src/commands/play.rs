@@ -225,7 +225,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             .send_message(ctx, |m| {
                 m.embed(|e| {
                     e.title("Searching for song...")
-                        .description(format!("Searching for `{}`", url))
+                        .description(format!("Searching for `{url}`"))
                 })
             })
             .await?;
@@ -259,19 +259,19 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                         let hours = (length.as_secs() / 60) / 60;
 
                         if seconds.len() < 2 {
-                            seconds = format!("0{}", seconds);
+                            seconds = format!("0{seconds}");
                         }
 
-                        e.title(format!("Added song: {}", title));
+                        e.title(format!("Added song: {title}"));
                         e.fields(vec![
-                            ("Title:", format!("[{}]({})", title, url), true),
+                            ("Title:", format!("[{title}]({url})"), true),
                             ("Artist", artist, true),
                             (
                                 "Spot in queue",
                                 (queue.len()).to_string(),
                                 true,
                             ),
-                            ("Length", format!("{}:{}:{}", hours, minutes, seconds), true),
+                            ("Length", format!("{hours}:{minutes}:{seconds}"), true),
                         ]);
 
                         e.footer(|f| {
@@ -313,19 +313,19 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 let hours = (length.as_secs() / 60) / 60;
 
                 if seconds.len() < 2 {
-                    seconds = format!("0{}", seconds);
+                    seconds = format!("0{seconds}");
                 }
 
-                e.title(format!("Added song: {}", title));
+                e.title(format!("Added song: {title}"));
                 e.fields(vec![
-                    ("Title:", format!("[{}]({})", title, url), true),
+                    ("Title:", format!("[{title}]({url})"), true),
                     ("Artist", artist, true),
                     (
                         "Spot in queue",
                         (queue.len()).to_string(),
                         true,
                     ),
-                    ("Length", format!("{}:{}:{}", hours, minutes, seconds), true),
+                    ("Length", format!("{hours}:{minutes}:{seconds}"), true),
                 ]);
 
                 e.footer(|f| {

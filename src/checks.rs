@@ -123,7 +123,7 @@ async fn get_author_perm_level(ctx: &Context, msg: &Message) -> StdResult<UserPe
 
     let user_perm = get_user_perms(pool, guild_id.into(), author_id.into())
         .await
-        .map_err(|e| Reason::Log(format!("{:?}", e)))?;
+        .map_err(|e| Reason::Log(format!("{e:?}")))?;
 
     if let Some(level) = user_perm {
         Ok(level)
@@ -137,7 +137,7 @@ async fn guild_has_dj_mode_enabled(ctx: &Context, msg: &Message) -> StdResult<bo
     let redis_con = data.get::<DjOnlyContainer>().unwrap().clone();
     if !check_if_guild_in_store(redis_con, msg.guild_id.unwrap())
         .await
-        .map_err(|e| Reason::Log(format!("{:?}", e)))?
+        .map_err(|e| Reason::Log(format!("{e:?}")))?
     {
         Ok(true)
     } else {

@@ -202,7 +202,7 @@ async fn main() -> anyhow::Result<()> {
             async move {
                 if let Err(e) = error {
                     warn!("Error with command {}, {:?}", cmd_name, e);
-                    let _ = msg.channel_id.say(ctx, format!("Command returned an error, {:?}, please report this on the support server https://discord.gg/5YytF9fPHr", e)).await;
+                    let _ = msg.channel_id.say(ctx, format!("Command returned an error, {e:?}, please report this on the support server https://discord.gg/5YytF9fPHr")).await;
                 }
             }
             .boxed()

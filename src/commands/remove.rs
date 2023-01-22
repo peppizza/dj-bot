@@ -25,7 +25,7 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
                 msg.channel_id.say(ctx, "Skipped the song").await?;
             } else if index > queue.len() {
-                msg.reply_ping(ctx, format!("There is no song at index: {}", index))
+                msg.reply_ping(ctx, format!("There is no song at index: {index}"))
                     .await?;
                 return Ok(());
             } else {
@@ -33,7 +33,7 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 let title = track.name;
 
                 msg.channel_id
-                    .say(ctx, format!("Removed song: `{}`", title))
+                    .say(ctx, format!("Removed song: `{title}`"))
                     .await?;
             }
         } else {

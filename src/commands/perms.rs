@@ -143,13 +143,13 @@ async fn list_users_with_perm(
 
     if returned_users.is_empty() {
         msg.channel_id
-            .say(ctx, format!("No users with {:?} role", perm_level))
+            .say(ctx, format!("No users with {perm_level:?} role"))
             .await?;
     } else {
         msg.channel_id
             .send_message(ctx, |m| {
                 m.embed(|e| {
-                    e.title(format!("Users with {:?} permission", perm_level));
+                    e.title(format!("Users with {perm_level:?} permission"));
                     let mut user_list = String::new();
                     for user in returned_users {
                         let user = UserId(user.user_id.try_into().unwrap());

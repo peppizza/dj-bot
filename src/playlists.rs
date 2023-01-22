@@ -20,7 +20,7 @@ impl std::fmt::Display for YtPlayListError {
         match self {
             Self::ListOfUrlsError(e) => {
                 let string_err = String::from_utf8(e.clone());
-                write!(f, "ListOfUrlsError: {:?}", string_err)
+                write!(f, "ListOfUrlsError: {string_err:?}")
             }
         }
     }
@@ -58,10 +58,10 @@ pub struct YtdlMetadata {
 
 pub async fn get_ytdl_metadata(search: &str) -> anyhow::Result<YtdlMetadata> {
     let output = Command::new("yt-dlp")
-        .args(&[
+        .args([
             "--skip-download",
             "--print-json",
-            &format!("ytsearch:{}", search),
+            &format!("ytsearch:{search}"),
         ])
         .output()
         .await?;
@@ -127,8 +127,7 @@ pub async fn get_list_of_spotify_tracks(
         Ok(token) => {
             let res = client
                 .get(&format!(
-                    "https://api.spotify.com/v1/playlists/{}/tracks",
-                    playlist_id
+                    "https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
                 ))
                 .bearer_auth(token.access_token)
                 .send()
@@ -150,7 +149,7 @@ mod tests {
     async fn test_spotify_access_token() {
         let client = reqwest::Client::new();
         let token = get_spotify_access_token(client).await.unwrap();
-        println!("{:?}", token);
+        println!("{token:?}");
     }
 
     #[tokio::test]
@@ -160,6 +159,6 @@ mod tests {
             .await
             .unwrap();
 
-        println!("{:?}", res);
+        println!("{res:?}");
     }
 }
