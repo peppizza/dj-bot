@@ -30,7 +30,7 @@ impl std::error::Error for YtPlayListError {}
 
 pub async fn get_list_of_urls(url: &str) -> anyhow::Result<Vec<YtPlayListResponse>> {
     let output = Command::new("yt-dlp")
-        .args(&["-j", "--flat-playlist", url])
+        .args(["-j", "--flat-playlist", url])
         .output()
         .await?;
 
