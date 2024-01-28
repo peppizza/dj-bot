@@ -48,7 +48,7 @@ async fn volume(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
-    if !(!new_volume < 0 && !new_volume > 100) {
+    if !(0..=100).contains(&new_volume) {
         msg.reply_ping(ctx, "Please select a value from 0 to 100")
             .await?;
         return Ok(());
